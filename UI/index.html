@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Emergency Triage System</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-container">
+    <div class="logo">Triage System</div>
+
+    <ul class="nav-links">
+      <li><a href="#home" class="nav-link">Home</a></li>
+      <li><a href="#intake" class="nav-link">Intake</a></li>
+      <li><a href="#queue" class="nav-link">Queue</a></li>
+      <li><a href="#admin" onclick="toggleAdmin(event)" class="nav-link">Admin</a></li>
+    </ul>
+    <!-- <a href="#queue" class="intake-btn">View Queue</a> -->
+    <button class="intake-btn" onclick="refreshQueueAndScroll()">
+            View Queue
+          </button>
+  </div>
+</div>
+
+<!-- home -->
+ <section id="home" class="main">
+  <div class="main-bg"></div>
+  <div class="container">
+    <div class="main-content">
+      <h1>Smarter Decisions<br><span>Faster Emergency Care</span></h1>
+
+      <p class="main-subtitle">An AI-assisted triage system that analyzes patient conditions in real-time to prioritize critical cases efficiently.</p>
+      <div class="main-buttons">
+        <a href="#intake" class="btn-primary">Begin Triage</a>
+      </div>
+    </div>
+  </div>
+
+ </section>
+
+ <section class="intake" id="intake">
+  <div class="container">
+    <div class="section-header">
+      <h2>Built for Critical Moments</h2>
+      <p>Real-time AI. Faster triage. Life-saving decisions.</p>
+    </div>
+    <form class="contact-form fade-in animate">
+      <div class="form-header">
+        <h3>Patient Information Form</h3>
+        
+        <p>Tell us about your symptoms.</p>
+        
+      </div>
+      <div class="form-group">
+        <input type="text" placeholder="Patient Name" id="patientName" required="">
+        <input type="text" placeholder="Age (years)" inputmode="numeric" min="0" max="120" pattern="[0-9]*" required="">
+      </div>
+      <div class="form-group">
+        <input type="email" placeholder="Email Address" required="">
+        <input type="tel" placeholder="Phone Number">
+      </div>
+      <label for="symptom">Symptoms:</label>
+        <select id="symptom" name="symptoms">
+          <option value="">Select your symptoms</option>
+          <optgroup label="Cardiac">
+            <option>Chest Pain</option>
+            <option>Irregular Heartbeat</option>
+            <option>Fainting</option>
+          </optgroup>
+
+          <optgroup label="Respiratory">
+            <option>Breathing Difficulty</option>
+            <option>Cough</option>
+          </optgroup>
+
+          <optgroup label="General">
+            <option>Fever</option>
+            <option>Fatigue</option>
+          </optgroup>
+
+          <optgroup label="Neurological">
+            <option>Headache</option>
+            <option>Dizziness</option>
+          </optgroup>
+
+          <optgroup label="Injury">
+            <option>Injury</option>
+            <option>Bleeding</option>
+          </optgroup>
+      </select>
+
+      <label>Pain Level: <span id="painValue">5</span></label>
+
+      <input type="range" min="1" max="10" value="5" id="pain" oninput="updatePain(this.value)">
+
+      <div class="pain-labels">
+        <span>Mild</span>
+        <span>Moderate</span>
+        <span>Severe</span>
+      </div>
+      
+      <textarea placeholder="Describe your vital sign" required=""></textarea>
+      <button type="button" class="form-submit" onclick="submitPatient(); updateAdminStats();">
+        <span>Submit and Queue</span>
+      </button>
+    </form>
+    <div id="resultBox"></div>//AI check and get result 
+  </div>
+
+
+ </section>
+
+ <section class="queue" id="queue">
+  <div class="container">
+    <div class="queue-grid" id="queueContainer">
+
+    <!-- TOTAL QUEUE -->
+      <div class="queue-card">
+          <h3 class="case-name">Total Queue</h3>
+
+          <div class="case-number">24
+          </div>
+
+          <ul class="case-features">
+              <li>Active patients in system</li>
+              <li>AI triage processing live</li>
+              <li>Auto priority sorting enabled</li>
+              <li>Real-time updates</li>
+              <li>Emergency mode active</li>
+          </ul>
+
+          <button class="btn-primary" onclick="refreshQueueAndScroll()" style="width: 100%; text-align: center;">
+            Refresh Queue
+          </button>
+      </div>
+
+      <!-- CRITICAL -->
+      <div class="queue-card featured">
+          <h3 class="case-name">Critical Cases</h3>
+
+          <div class="case-number">3
+          </div>
+
+          <ul class="case-features">
+              <li>🔴 Immediate attention required</li>
+              <li>Low SpO₂ or chest pain cases</li>
+              <li>Top priority in queue</li>
+              <li>Auto-alert system active</li>
+              <li>Doctor notification enabled</li>
+          </ul>
+
+          <button class="btn-primary" onclick="viewCriticalCases()" style="width: 100%; text-align: center;">
+              View Critical
+          </button>
+      </div>
+
+      <!-- URGENT + NORMAL -->
+      <div class="queue-card">
+          <h3 class="case-name">Urgent & Normal</h3>
+
+          <div class="case-number">21
+          </div>
+
+          <ul class="case-features">
+              <li>🟠 Urgent: 8 patients</li>
+              <li>🟢 Normal: 13 patients</li>
+              <li>Estimated wait time: 10-30 min</li>
+              <li>Queue optimized by AI score</li>
+              <li>Stable monitoring active</li>
+          </ul>
+
+          <button class="btn-primary" onclick="toggleAllPatients()" style="width: 100%; text-align: center;">
+              <a href="#queuelist" style="text-decoration: none; color: #f5f5f5;">View All Patients</a>
+          </button>
+      
+        
+          
+      </div>
+
+    </div>
+  
+
+  </div>
+  
+ </section>
+ <section class="queuelist" id="queuelist">
+    <div id="allPatients" class="queue-grid" style="display:none; margin-top:2rem;">
+  <h2>Patient List</h2>
+      
+    </div>
+
+    
+    
+
+
+ </section>
+
+ <section id="loginSection" class="login-section">
+  <div class="login-box">
+    <h2>Admin Login</h2>
+
+    <input type="text" id="adminUser" placeholder="Username">
+    <input type="password" id="adminPass" placeholder="Password">
+
+    <button onclick="adminLogin()" class="admin-btn">Login</button>
+
+    <p id="loginError" style="color:#E63946; margin-top:10px;"></p>
+  </div>
+</section>
+
+<section id="adminSection" style="display:none;">
+  <h2>Admin Dashboard</h2>
+
+  <div class="admin-stats">
+    <div class="stat-card">
+      <div class="stat-number" id="totalCount">0</div>
+      <div class="stat-label">Total Patients</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-number" id="criticalCount">0</div>
+      <div class="stat-label">Critical</div>
+    </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="urgentCount">0</div>
+      <div class="stat-label">Urgent</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-number" id="normalCount">0</div>
+      <div class="stat-label">Normal</div>
+    </div>
+
+  <div class="admin-buttons">
+    <button class="admin-btn danger" onclick="clearAllPatients()">Clear System</button>
+  </div>
+  <button class="admin-btn danger" onclick="adminLogout()">
+  Logout
+</button>
+</section>
+
+ <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="#home">Home</a>
+                <a href="#intake">Intake</a>
+                <a href="#queue">Queue</a>
+            </div>
+            <div class="footer-copyright">
+               © 2026 Triage System. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+
+
+
+<script>
+  // GLOBAL PATIENT DATA
+  let patients = [];
+
+  // UPDATE PAIN DISPLAY (SLIDER)
+function updatePain(value) {
+  document.getElementById("painValue").innerText = value;
+}
+
+  // SUBMIT NEW PATIENT
+  // - Calculate severity
+  // - Add to patient list
+  // - Show result box
+function submitPatient() {
+  let name = document.getElementById("patientName").value;
+  let symptom = document.getElementById("symptom").value;
+  let pain = Number(document.getElementById("pain").value);
+
+  let age = Number(document.querySelector("input[placeholder='Age (years)']").value);
+
+  let severity = "Normal";
+  let score = 40;
+  let reason = "Mild condition";
+
+  // normalize symptom
+  let s = symptom.toLowerCase();
+
+  // 🔴 CRITICAL RULES
+  if (
+    (s === "chest pain" && pain >= 6) ||
+    (s === "breathing difficulty") ||
+    (s === "fainting") ||
+    (age >= 65 && pain >= 5)
+  ) {
+    severity = "Critical";
+    score = 90 + Math.floor(Math.random() * 10);
+    reason = "High-risk symptom detected";
+  }
+
+  // 🟠 URGENT RULES
+  else if (
+    pain >= 5 ||
+    s === "irregular heartbeat" ||
+    s === "bleeding"
+  ) {
+    severity = "Urgent";
+    score = 60 + Math.floor(Math.random() * 20);
+    reason = "Moderate risk condition";
+  }
+
+  // SAVE PATIENT
+  patients.push({ name, symptom, pain, severity, score, reason });
+
+  // SHOW RESULT ONLY
+  let box = document.getElementById("resultBox");
+  box.style.display = "block";
+
+  setTimeout(() => {
+    box.classList.add("show");
+  }, 10);
+
+  box.className = "card";
+  if (severity === "Critical") box.classList.add("red");
+  else if (severity === "Urgent") box.classList.add("orange");
+  else box.classList.add("green");
+
+  box.innerHTML = `
+    <b>${severity}</b><br>
+    Patient: ${name}<br>
+    Risk Score: ${score}%<br>
+    Reason: ${reason}
+  `;
+}
+
+// TOGGLE PATIENT LIST VIEW
+function toggleAllPatients() {
+  let container = document.getElementById("allPatients");
+
+  if (container.style.display === "none" || container.style.display === "") {
+    container.style.display = "grid";
+    container.style.gridTemplateColumns = "repeat(2, 1fr)";
+container.style.gap = "1rem";
+    renderAllPatients(); // only render when opened
+  } else {
+    container.style.display = "none";
+  }
+}
+
+// RENDER ALL PATIENTS
+function renderAllPatients() {
+  let container = document.getElementById("allPatients");
+
+  container.innerHTML = `
+    <h2 style="width:100%; text-align:center; color:#F5F5F5;">
+      Patient List
+    </h2>
+  `;
+  patients
+    .sort((a, b) => b.score - a.score)
+    .forEach(p => {
+
+      let typeClass = p.severity.toLowerCase();
+
+      container.innerHTML += `
+      
+        <div class="patient-bar ${typeClass}">
+          
+          <div class="patient-info">
+            
+            <div class="patient-name">${p.name}</div>
+            <div class="patient-symptom">${p.symptom}</div>
+          </div>
+
+          <div class="score-container">
+            <div class="score-bar">
+              <div class="score-fill" style="width:${p.score}%"></div>
+            </div>
+            <div class="badge">${p.severity}</div>
+          </div>
+
+        </div>
+      `;
+    });
+}
+
+// REFRESH QUEUE + SCROLL
+function refreshQueueAndScroll() {
+  toggleAllPatients();   // show list
+  refreshQueue();        // render data
+
+  // smooth scroll after render
+  setTimeout(() => {
+    document.getElementById("queuelist")
+      .scrollIntoView({ behavior: "smooth" });
+  }, 50);
+}
+
+// QUEUE RENDER (SORTED + LABELLED)
+function refreshQueue() {
+
+  let container = document.getElementById("allPatients");
+
+  container.innerHTML = `
+    <h2 style="width:100%; text-align:center; color:#F5F5F5; margin-bottom:1rem;">
+      Queue List
+    </h2>
+  `;
+
+  const priorityOrder = { Critical: 3, Urgent: 2, Normal: 1 };
+
+  patients.sort((a, b) => {
+    if (priorityOrder[b.severity] !== priorityOrder[a.severity]) {
+      return priorityOrder[b.severity] - priorityOrder[a.severity];
+    }
+    return b.score - a.score;
+  });
+
+  let criticalCount = 0;
+  let urgentCount = 0;
+  let normalCount = 0;
+
+  patients.forEach(p => {
+
+    let label = "";
+
+    if (p.severity === "Critical") {
+      criticalCount++;
+      label = `Critical ${criticalCount}`;
+    } 
+    else if (p.severity === "Urgent") {
+      urgentCount++;
+      label = `Urgent ${urgentCount}`;
+    } 
+    else {
+      normalCount++;
+      label = `Normal ${normalCount}`;
+    }
+
+    container.innerHTML += `
+      <div class="patient-bar ${p.severity.toLowerCase()}">
+
+        <div class="patient-info">
+          <div class="patient-name">
+            ${label} - ${p.name}
+          </div>
+          <div class="patient-symptom">
+            ${p.symptom}
+          </div>
+        </div>
+
+        <div class="score-container">
+          <div class="badge">${p.severity}</div>
+          <div class="score-bar">
+            <div class="score-fill" style="width:${p.score}%"></div>
+          </div>
+          <span>${p.score}%</span>
+        </div>
+
+      </div>
+    `;
+  });
+
+  container.style.display = "flex";
+}
+
+// VIEW ONLY CRITICAL CASES
+function viewCriticalCases() {
+  let container = document.getElementById("allPatients");
+
+  // show section
+  container.style.display = "grid";
+  container.style.gridTemplateColumns = "repeat(2, 1fr)";
+  container.style.gap = "1rem";
+
+  // filter only critical patients
+  let criticalPatients = patients
+    .filter(p => p.severity === "Critical")
+    .sort((a, b) => b.score - a.score);
+
+  container.innerHTML = `
+    <h2 style="width:100%; text-align:center; color:#F5F5F5; margin-bottom:1rem;">
+      Critical Cases
+    </h2>
+  `;
+
+  let criticalCount = 0;
+
+  criticalPatients.forEach(p => {
+    criticalCount++;
+
+    container.innerHTML += `
+      <div class="patient-bar critical">
+
+        <div class="patient-info">
+          <div class="patient-name">
+            Critical ${criticalCount} - ${p.name}
+          </div>
+          <div class="patient-symptom">
+            ${p.symptom}
+          </div>
+        </div>
+
+        <div class="score-container">
+          <div class="badge">Critical</div>
+          <div class="score-bar">
+            <div class="score-fill" style="width:${p.score}%"></div>
+          </div>
+          <span>${p.score}%</span>
+        </div>
+
+      </div>
+    `;
+  });
+
+  // smooth scroll
+  setTimeout(() => {
+    document.getElementById("queuelist")
+      .scrollIntoView({ behavior: "smooth" });
+  }, 50);
+}
+
+function updateAdminStats() {
+  let total = patients.length;
+  let critical = patients.filter(p => p.severity === "Critical").length;
+  let urgent = patients.filter(p => p.severity === "Urgent").length;
+  let normal = patients.filter(p => p.severity === "Normal").length;
+
+  document.getElementById("totalCount").innerText = total;
+  document.getElementById("criticalCount").innerText = critical;
+  document.getElementById("urgentCount").innerText = urgent;
+  document.getElementById("normalCount").innerText = normal;
+}
+
+function adminLogin() {
+  let user = document.getElementById("adminUser").value;
+  let pass = document.getElementById("adminPass").value;
+
+  let error = document.getElementById("loginError");
+
+  // simple demo login (you can change later)
+  if (user === "admin" && pass === "1234") {
+
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("adminSection").style.display = "block";
+
+    updateAdminStats(); // load dashboard data
+  } else {
+    error.innerText = "Invalid username or password";
+  }
+}
+
+function clearAllPatients() {
+  patients = []; // reset array
+
+  // clear UI sections
+  document.getElementById("resultBox").innerHTML = "";
+  document.getElementById("allPatients").innerHTML = "";
+
+  // reset admin stats
+  updateAdminStats();
+
+  // optional: hide queue list
+  document.getElementById("allPatients").style.display = "none";
+}
+
+function adminLogout() {
+  if (!confirm("Are you sure you want to logout?")) return;
+
+  document.getElementById("adminSection").style.display = "none";
+  document.getElementById("loginSection").style.display = "block";
+
+  document.getElementById("adminUser").value = "";
+  document.getElementById("adminPass").value = "";
+  document.getElementById("loginError").innerText = "";
+}
+
+</script>
+
+
+
+
+
+
+
+
+
+
