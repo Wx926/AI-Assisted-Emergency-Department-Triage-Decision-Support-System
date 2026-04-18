@@ -1,7 +1,6 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from database import get_connection
-from datetime import datetime
 
 router = APIRouter()
 
@@ -15,129 +14,155 @@ class PatientInput(BaseModel):
     symptom: str
 
 
-# DOOR1: receive a new patient
 @router.post("/patients")
 def add_patient(data: PatientInput):
     conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-                   INSERT INTO patients (name, age, heart_rate, oxygen_level, blood_pressure, symptom)
-                   VALUES (?,?,?,?,?,?)
-                     """,
-        (
-            data.name,
-            data.age,
-            data.heart_rate,
-            data.oxygen_level,
-            data.blood_pressure,
-            data.symptom,
-        ),
-    )
-
-    conn.commit()
-    patient_id = cursor.lastrowid
-    conn.close()
-
-    return {"message": "Patient added successfully", "patient_id": patient_id}
-
-
-# DOOR2: Run triage on a patient
-@router.post("/triage/{patient_id}")
-def run_triage(patient_id: int):
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT * FROM patients WHERE id = ?", (patient_id,))
-    patient = cursor.fetchone()
-
-    if not patient:
-        return {"error": "Patient not found"}
-
-    # Placeholder triage logic
-    result = {
-        "severity": "Critical",
-        "risk_score": 92,
-        "reason": "Placeholder - AI model not connected yet",
-    }
-
-    cursor.execute(
-        """
-                    INSERT INTO triage_results(patient_id, severity, risk_score, reason)
-                    VALUES (?,?,?,?)
-                    """,
-        (patient_id, result["severity"], result["risk_score"], result["reason"]),
-    )
-
-    cursor.execute(
-        """
-                   INSERT INTO queue (patient_id, severity)
-                   VALUES (?,?)
-                   """,
-        (patient_id, result["severity"]),
-    )
-
-    if result["severity"] == "Critical":
+    try:
+        cursor = conn.cursor()
         cursor.execute(
             """
-                        INSERT INTO alerts (patient_id, message)
-                        VALUES (?,?)
-                        """,
+            INSERT INTO patients (name, age, heart_rate, oxygen_level, blood_pressure, symptom)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """,
             (
-                patient_id,
-                f"CRITICAL ALERT: Patient {patient['name']} needs immediate attention!",
+                data.name,
+                data.age,
+                data.heart_rate,
+                data.oxygen_level,
+                data.blood_pressure,
+                data.symptom,
             ),
         )
         conn.commit()
+        patient_id = cursor.lastrowid
+        return {"message": "Patient added successfully", "patient_id": patient_id}
+    finally:
         conn.close()
 
+
+@router.post("/triage/{patient_id}")
+def run_triage(patient_id: int):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM patients WHERE id = ?", (patient_id,))
+        patient = cursor.fetchone()
+
+        if not patient:
+            return {"error": "Patient not found"}
+
+        # ── Placeholder for Person 1's AI model ──
+        # Later replace with:
+        # from model_logic import predict
+        # result = predict(dict(patient))
+
+        oxygen = patient["oxygen_level"]
+        heart_rate = patient["heart_rate"]
+        symptom = patient["symptom"].lower()
+
+        critical_symptoms = [
+            "chest pain",
+            "difficulty breathing",
+            "unconscious",
+            "stroke",
+        ]
+        urgent_symptoms = ["fever", "vomiting", "dizziness", "bleeding"]
+
+        if oxygen < 90 or any(s in symptom for s in critical_symptoms):
+            severity = "Critical"
+            risk_score = 90
+            reason = f"Low oxygen ({oxygen}%) or critical symptom detected"
+        elif heart_rate > 120 or any(s in symptom for s in urgent_symptoms):
+            severity = "Urgent"
+            risk_score = 60
+            reason = (
+                f"Elevated heart rate ({heart_rate} bpm) or urgent symptom detected"
+            )
+        else:
+            severity = "Normal"
+            risk_score = 20
+            reason = "Vitals are stable, no critical symptoms"
+
+        result = {"severity": severity, "risk_score": risk_score, "reason": reason}
+        # ─────────────────────────────────────────
+
+        cursor.execute(
+            """
+            INSERT INTO triage_results (patient_id, severity, risk_score, reason)
+            VALUES (?, ?, ?, ?)
+        """,
+            (patient_id, result["severity"], result["risk_score"], result["reason"]),
+        )
+
+        cursor.execute(
+            """
+            INSERT INTO queue (patient_id, severity)
+            VALUES (?, ?)
+        """,
+            (patient_id, result["severity"]),
+        )
+
+        if result["severity"] == "Critical":
+            cursor.execute(
+                """
+                INSERT INTO alerts (patient_id, message)
+                VALUES (?, ?)
+            """,
+                (
+                    patient_id,
+                    f"CRITICAL ALERT: Patient {patient['name']} needs immediate attention!",
+                ),
+            )
+
+        conn.commit()
         return {
             "message": "Triage completed",
             "patient_id": patient_id,
             "result": result,
         }
-
-    # DOOR3 - Get the patient queue
+    finally:
+        conn.close()
 
 
 @router.get("/queue")
 def get_queue():
     conn = get_connection()
-    curosr = conn.cursor()
-    cursor.execute(
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT q.id, p.name, p.age, q.severity, q.status, q.timestamp
+            FROM queue q
+            JOIN patients p ON q.patient_id = p.id
+            WHERE q.status = 'waiting'
+            ORDER BY CASE q.severity
+                WHEN 'Critical' THEN 1
+                WHEN 'Urgent' THEN 2
+                WHEN 'Normal' THEN 3
+            END
         """
-        SELECT q.id, p.name, p.age, q.severity, q.status, q.timestamp
-        FROM queue q
-        JOIN patients p ON q.patient_id = p.id
-        WHERE q.status = 'waiting'
-        ORDER BY CASE q.severity
-            WHEN 'Critical' THEN 1
-            WHEN 'Urgent' THEN 2
-            WHEN 'Normal' THEN 3
-        END
-    """
-    )
-    queue = [dict(row) for row in cursor.fetchall()]
-    conn.close()
-
-    return {"queue": queue}
+        )
+        queue = [dict(row) for row in cursor.fetchall()]
+        return {"queue": queue}
+    finally:
+        conn.close()
 
 
 @router.get("/alerts")
 def get_alerts():
     conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute(
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT a.id, p.name, a.message, a.is_resolved, a.timestamp
+            FROM alerts a
+            JOIN patients p ON a.patient_id = p.id
+            WHERE a.is_resolved = 0
         """
-        SELECT a.id, p.name, a.message, a.timestamp
-        FROM alerts a
-        JOIN patients p ON a.patient_id = p.id
-        WHERE a.is_resolved = 0
-
-    """
-    )
-    alerts = [dict(row) for row in cursor.fetchall()]
-    conn.close()
-
-    return {"alerts": alerts}
+        )
+        alerts = [dict(row) for row in cursor.fetchall()]
+        return {"alerts": alerts}
+    finally:
+        conn.close()

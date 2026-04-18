@@ -1,8 +1,12 @@
 import sqlite3
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "triage.db")
 
 
 def get_connection():
-    conn = sqlite3.connect("triage.db")
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False, timeout=10)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -29,7 +33,7 @@ def create_tables():
 
     cursor.execute(
         """
-        CREATE TABLE IF NOT EXISTS triage (
+        CREATE TABLE IF NOT EXISTS triage_results (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             patient_id INTEGER,
             severity TEXT,
@@ -43,7 +47,7 @@ def create_tables():
 
     cursor.execute(
         """
-        CREATE TABLE IF NOT EXISTS feedback (
+        CREATE TABLE IF NOT EXISTS queue (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             patient_id INTEGER,
             severity TEXT,
@@ -56,7 +60,7 @@ def create_tables():
 
     cursor.execute(
         """
-        CREATE TABLE IF NOT EXISTS staff (
+        CREATE TABLE IF NOT EXISTS alerts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             patient_id INTEGER,
             message TEXT,
