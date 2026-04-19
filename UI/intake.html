@@ -202,7 +202,11 @@
         <b>Patient:</b> ${name}<br>
         <b>Risk Score:</b> ${riskScore}%<br>
         <b>Symptom:</b> ${symptom}<br>
-        <b>Reason:</b> ${reason}<br>
+        <b>AI Reason:</b> ${reason}<br><br>
+        <div style="background:#1a1a1a; padding:1rem; border-radius:8px; border-left:3px solid #2a9d8f; margin-top:0.5rem;">
+          <b style="color:#2a9d8f; font-size:0.85rem;">GEMINI CLINICAL SUMMARY</b><br>
+          <span style="font-size:0.9rem; color:#f5f5f5;">${data2.result.gemini_summary || "Summary unavailable"}</span>
+        </div><br>
         <small style="color:#aaa;">Submitted at ${new Date().toLocaleTimeString()}</small><br><br>
         <a href="queue.html" style="color:#E63946; font-weight:bold;">→ View in Queue</a>
       `;

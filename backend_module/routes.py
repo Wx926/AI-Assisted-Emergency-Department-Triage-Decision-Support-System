@@ -3,12 +3,19 @@ from pydantic import BaseModel
 from database import get_connection
 import sys
 import os
+import google.generativeai as genai
 
-router = APIRouter()
-
-# Load triage module path once at startup
+# Add triage_module to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "triage_module")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "triage_module")))
+
+from model_logic import predict_triage
+
+# Configure Gemini
+genai.configure(api_key="AIzaSyBdO1Zjt7Jv4SLt-vvCkJ847-HZ3aG8O_k")
+gemini_model = genai.GenerativeModel("gemini-1.5-flash")
+
+router = APIRouter()
 
 
 class PatientInput(BaseModel):
@@ -18,6 +25,34 @@ class PatientInput(BaseModel):
     oxygen_level: int
     blood_pressure: str
     symptom: str
+
+
+def generate_gemini_summary(name, age, heart_rate, oxygen_level, blood_pressure, symptom, severity, risk_score, reason):
+    """Use Gemini to generate a clinical summary for the doctor."""
+    try:
+        prompt = f"""
+        You are a clinical decision support assistant in an Emergency Department.
+        A patient has just been triaged. Write a concise 2-sentence clinical summary for the attending doctor.
+
+        Patient Details:
+        - Name: {name}
+        - Age: {age}
+        - Heart Rate: {heart_rate} bpm
+        - Oxygen Level (SpO2): {oxygen_level}%
+        - Blood Pressure: {blood_pressure}
+        - Chief Complaint: {symptom}
+
+        AI Triage Result:
+        - Severity: {severity}
+        - Risk Score: {risk_score}%
+        - Reason: {reason}
+
+        Write a professional 2-sentence clinical summary. Be concise and factual.
+        """
+        response = gemini_model.generate_content(prompt)
+        return response.text.strip()
+    except Exception as e:
+        return f"Clinical summary unavailable: {str(e)}"
 
 
 @router.post("/patients")
@@ -59,8 +94,6 @@ def run_triage(patient_id: int):
             return {"error": "Patient not found"}
 
         # ── Person 1 AI Model Integration ──
-        from model_logic import predict_triage
-
         triage_input = {
             "age":                  patient["age"],
             "heart_rate":           patient["heart_rate"],
@@ -80,6 +113,21 @@ def run_triage(patient_id: int):
             "reason":     ai_result["reason"]
         }
         # ───────────────────────────────────
+
+        # ── Gemini Clinical Summary ──
+        gemini_summary = generate_gemini_summary(
+            name=patient["name"],
+            age=patient["age"],
+            heart_rate=patient["heart_rate"],
+            oxygen_level=patient["oxygen_level"],
+            blood_pressure=patient["blood_pressure"],
+            symptom=patient["symptom"],
+            severity=result["severity"],
+            risk_score=result["risk_score"],
+            reason=result["reason"]
+        )
+        result["gemini_summary"] = gemini_summary
+        # ────────────────────────────
 
         cursor.execute(
             """
@@ -119,6 +167,21 @@ def run_triage(patient_id: int):
         conn.close()
 
 
+@router.post("/discharge/{queue_id}")
+def discharge_patient(queue_id: int):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE queue SET status = 'done' WHERE id = ?",
+            (queue_id,)
+        )
+        conn.commit()
+        return {"message": "Patient discharged successfully", "queue_id": queue_id}
+    finally:
+        conn.close()
+
+
 @router.get("/queue")
 def get_queue():
     conn = get_connection()
@@ -142,20 +205,7 @@ def get_queue():
     finally:
         conn.close()
 
-@router.post("/discharge/{queue_id}")
-def discharge_patient(queue_id: int):
-    conn = get_connection()
-    try:
-        cursor = conn.cursor()
-        cursor.execute(
-            "UPDATE queue SET status = 'done' WHERE id = ?",
-            (queue_id,)
-        )
-        conn.commit()
-        return {"message": "Patient discharged successfully", "queue_id": queue_id}
-    finally:
-        conn.close()
-        
+
 @router.get("/alerts")
 def get_alerts():
     conn = get_connection()
