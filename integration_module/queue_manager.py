@@ -16,4 +16,4 @@ def add_patient(patient, severity):
 def show_queue():
     print("\n=== CURRENT QUEUE ===")
     for i, p in enumerate(queue):
-        print(f"{i+1}. {p['symptoms']} - {p['severity']}")
+        print(f"{i+1}. {p['name']} - {p['severity']}")

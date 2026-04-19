@@ -1,47 +1,59 @@
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "triage_module")))
+
+from model_logic import predict_triage
 from queue_manager import add_patient, show_queue
 from monitor import show_monitor
 
 patients = [
     {
+        "name": "Ahmad",
         "age": 70,
-        "symptoms": "chest pain",
         "heart_rate": 120,
-        "blood_pressure": "90/60",
-        "temperature": 37,
         "spo2": 85,
-        "pain_score": 9
+        "temperature": 37.0,
+        "pain_score": 9,
+        "chest_pain": 1,
+        "fever": 0,
+        "headache": 0,
+        "shortness_of_breath": 1
     },
     {
+        "name": "Siti",
         "age": 30,
-        "symptoms": "fever",
         "heart_rate": 105,
-        "blood_pressure": "120/80",
-        "temperature": 38.5,
         "spo2": 96,
-        "pain_score": 5
+        "temperature": 38.5,
+        "pain_score": 5,
+        "chest_pain": 0,
+        "fever": 1,
+        "headache": 0,
+        "shortness_of_breath": 0
     },
     {
+        "name": "Raj",
         "age": 25,
-        "symptoms": "headache",
         "heart_rate": 75,
-        "blood_pressure": "120/80",
-        "temperature": 36.8,
         "spo2": 98,
-        "pain_score": 2
+        "temperature": 36.8,
+        "pain_score": 2,
+        "chest_pain": 0,
+        "fever": 0,
+        "headache": 1,
+        "shortness_of_breath": 0
     }
 ]
 
-def simple_triage(patient):
-    if patient["spo2"] < 90 or "chest pain" in patient["symptoms"].lower():
-        return "Critical"
-    elif patient["heart_rate"] > 100 or patient["temperature"] > 38:
-        return "Urgent"
-    else:
-        return "Normal"
+print("\n===== TRIAGEPULSE INTEGRATION TEST =====")
 
 for p in patients:
-    severity = simple_triage(p)
-    add_patient(p, severity)
+    result = predict_triage(p)
+    add_patient(p, result["severity"])
+    print(f"\nPatient : {p['name']}")
+    print(f"Severity: {result['severity']}")
+    print(f"Risk    : {result['risk_score']}%")
+    print(f"Reason  : {result['reason']}")
 
 show_queue()
 show_monitor()
