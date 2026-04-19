@@ -1,6 +1,8 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from database import get_connection
+import sys
+import os
 
 router = APIRouter()
 
@@ -52,40 +54,29 @@ def run_triage(patient_id: int):
         if not patient:
             return {"error": "Patient not found"}
 
-        # ── Placeholder for Person 1's AI model ──
-        # Later replace with:
-        # from model_logic import predict
-        # result = predict(dict(patient))
+        # ── Person 1 AI Model Integration ──
+        sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "triage_module")))
+        from model_logic import predict_triage
 
-        oxygen = patient["oxygen_level"]
-        heart_rate = patient["heart_rate"]
-        symptom = patient["symptom"].lower()
+        triage_input = {
+            "age":                  patient["age"],
+            "heart_rate":           patient["heart_rate"],
+            "spo2":                 patient["oxygen_level"],
+            "temperature":          37.0,
+            "pain_score":           5,
+            "chest_pain":           1 if "chest pain" in patient["symptom"].lower() else 0,
+            "fever":                1 if "fever" in patient["symptom"].lower() else 0,
+            "headache":             1 if "headache" in patient["symptom"].lower() else 0,
+            "shortness_of_breath":  1 if "breath" in patient["symptom"].lower() else 0
+        }
 
-        critical_symptoms = [
-            "chest pain",
-            "difficulty breathing",
-            "unconscious",
-            "stroke",
-        ]
-        urgent_symptoms = ["fever", "vomiting", "dizziness", "bleeding"]
-
-        if oxygen < 90 or any(s in symptom for s in critical_symptoms):
-            severity = "Critical"
-            risk_score = 90
-            reason = f"Low oxygen ({oxygen}%) or critical symptom detected"
-        elif heart_rate > 120 or any(s in symptom for s in urgent_symptoms):
-            severity = "Urgent"
-            risk_score = 60
-            reason = (
-                f"Elevated heart rate ({heart_rate} bpm) or urgent symptom detected"
-            )
-        else:
-            severity = "Normal"
-            risk_score = 20
-            reason = "Vitals are stable, no critical symptoms"
-
-        result = {"severity": severity, "risk_score": risk_score, "reason": reason}
-        # ─────────────────────────────────────────
+        ai_result = predict_triage(triage_input)
+        result = {
+            "severity":   ai_result["severity"],
+            "risk_score": ai_result["risk_score"],
+            "reason":     ai_result["reason"]
+        }
+        # ───────────────────────────────────
 
         cursor.execute(
             """
