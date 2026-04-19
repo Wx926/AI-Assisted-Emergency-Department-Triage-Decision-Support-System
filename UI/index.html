@@ -18,7 +18,6 @@
       <li><a href="#queue" class="nav-link">Queue</a></li>
       <li><a href="#admin" onclick="toggleAdmin(event)" class="nav-link">Admin</a></li>
     </ul>
-    <!-- <a href="#queue" class="intake-btn">View Queue</a> -->
     <button class="intake-btn" onclick="refreshQueueAndScroll()">
             View Queue
           </button>
@@ -31,14 +30,12 @@
   <div class="container">
     <div class="main-content">
       <h1>Smarter Decisions<br><span>Faster Emergency Care</span></h1>
-
       <p class="main-subtitle">An AI-assisted triage system that analyzes patient conditions in real-time to prioritize critical cases efficiently.</p>
       <div class="main-buttons">
         <a href="#intake" class="btn-primary">Begin Triage</a>
       </div>
     </div>
   </div>
-
  </section>
 
  <section class="intake" id="intake">
@@ -50,80 +47,71 @@
     <form class="contact-form fade-in animate">
       <div class="form-header">
         <h3>Patient Information Form</h3>
-        
         <p>Tell us about your symptoms.</p>
-        
       </div>
       <div class="form-group">
         <input type="text" placeholder="Patient Name" id="patientName" required="">
-        <input type="text" placeholder="Age (years)" inputmode="numeric" min="0" max="120" pattern="[0-9]*" required="">
+        <input type="text" placeholder="Age (years)" id="patientAge" inputmode="numeric" min="0" max="120" pattern="[0-9]*" required="">
       </div>
       <div class="form-group">
-        <input type="email" placeholder="Email Address" required="">
-        <input type="tel" placeholder="Phone Number">
+        <input type="text" placeholder="Heart Rate (bpm)" id="heartRate" inputmode="numeric" required="">
+        <input type="text" placeholder="Oxygen Level (%)" id="oxygenLevel" inputmode="numeric" required="">
       </div>
+      <div class="form-group">
+        <input type="text" placeholder="Blood Pressure (e.g. 120/80)" id="bloodPressure" required="">
+      </div>
+
       <label for="symptom">Symptoms:</label>
         <select id="symptom" name="symptoms">
           <option value="">Select your symptoms</option>
           <optgroup label="Cardiac">
-            <option>Chest Pain</option>
-            <option>Irregular Heartbeat</option>
-            <option>Fainting</option>
+            <option value="chest pain">Chest Pain</option>
+            <option value="irregular heartbeat">Irregular Heartbeat</option>
+            <option value="fainting">Fainting</option>
           </optgroup>
-
           <optgroup label="Respiratory">
-            <option>Breathing Difficulty</option>
-            <option>Cough</option>
+            <option value="difficulty breathing">Breathing Difficulty</option>
+            <option value="cough">Cough</option>
           </optgroup>
-
           <optgroup label="General">
-            <option>Fever</option>
-            <option>Fatigue</option>
+            <option value="fever">Fever</option>
+            <option value="fatigue">Fatigue</option>
           </optgroup>
-
           <optgroup label="Neurological">
-            <option>Headache</option>
-            <option>Dizziness</option>
+            <option value="headache">Headache</option>
+            <option value="dizziness">Dizziness</option>
           </optgroup>
-
           <optgroup label="Injury">
-            <option>Injury</option>
-            <option>Bleeding</option>
+            <option value="injury">Injury</option>
+            <option value="bleeding">Bleeding</option>
           </optgroup>
       </select>
 
       <label>Pain Level: <span id="painValue">5</span></label>
-
       <input type="range" min="1" max="10" value="5" id="pain" oninput="updatePain(this.value)">
-
       <div class="pain-labels">
         <span>Mild</span>
         <span>Moderate</span>
         <span>Severe</span>
       </div>
       
-      <textarea placeholder="Describe your vital sign" required=""></textarea>
-      <button type="button" class="form-submit" onclick="submitPatient(); updateAdminStats();">
+      <textarea placeholder="Describe your vital sign" id="vitalNotes" required=""></textarea>
+      <button type="button" class="form-submit" onclick="submitPatient();">
         <span>Submit and Queue</span>
       </button>
     </form>
-    <div id="resultBox"></div>//AI check and get result 
+    <div id="resultBox"></div>
   </div>
-
-
  </section>
 
  <section class="queue" id="queue">
   <div class="container">
     <div class="queue-grid" id="queueContainer">
 
-    <!-- TOTAL QUEUE -->
+      <!-- TOTAL QUEUE -->
       <div class="queue-card">
           <h3 class="case-name">Total Queue</h3>
-
-          <div class="case-number">24
-          </div>
-
+          <div class="case-number" id="totalQueueCount">0</div>
           <ul class="case-features">
               <li>Active patients in system</li>
               <li>AI triage processing live</li>
@@ -131,7 +119,6 @@
               <li>Real-time updates</li>
               <li>Emergency mode active</li>
           </ul>
-
           <button class="btn-primary" onclick="refreshQueueAndScroll()" style="width: 100%; text-align: center;">
             Refresh Queue
           </button>
@@ -140,10 +127,7 @@
       <!-- CRITICAL -->
       <div class="queue-card featured">
           <h3 class="case-name">Critical Cases</h3>
-
-          <div class="case-number">3
-          </div>
-
+          <div class="case-number" id="criticalQueueCount">0</div>
           <ul class="case-features">
               <li>🔴 Immediate attention required</li>
               <li>Low SpO₂ or chest pain cases</li>
@@ -151,7 +135,6 @@
               <li>Auto-alert system active</li>
               <li>Doctor notification enabled</li>
           </ul>
-
           <button class="btn-primary" onclick="viewCriticalCases()" style="width: 100%; text-align: center;">
               View Critical
           </button>
@@ -160,66 +143,46 @@
       <!-- URGENT + NORMAL -->
       <div class="queue-card">
           <h3 class="case-name">Urgent & Normal</h3>
-
-          <div class="case-number">21
-          </div>
-
+          <div class="case-number" id="urgentNormalQueueCount">0</div>
           <ul class="case-features">
-              <li>🟠 Urgent: 8 patients</li>
-              <li>🟢 Normal: 13 patients</li>
+              <li>🟠 Urgent: <span id="urgentQueueCount">0</span> patients</li>
+              <li>🟢 Normal: <span id="normalQueueCount">0</span> patients</li>
               <li>Estimated wait time: 10-30 min</li>
               <li>Queue optimized by AI score</li>
               <li>Stable monitoring active</li>
           </ul>
-
           <button class="btn-primary" onclick="toggleAllPatients()" style="width: 100%; text-align: center;">
               <a href="#queuelist" style="text-decoration: none; color: #f5f5f5;">View All Patients</a>
           </button>
-      
-        
-          
       </div>
 
     </div>
-  
-
   </div>
-  
  </section>
+
  <section class="queuelist" id="queuelist">
     <div id="allPatients" class="queue-grid" style="display:none; margin-top:2rem;">
-  <h2>Patient List</h2>
-      
+      <h2>Patient List</h2>
     </div>
-
-    
-    
-
-
  </section>
 
  <section id="loginSection" class="login-section">
   <div class="login-box">
     <h2>Admin Login</h2>
-
     <input type="text" id="adminUser" placeholder="Username">
     <input type="password" id="adminPass" placeholder="Password">
-
     <button onclick="adminLogin()" class="admin-btn">Login</button>
-
     <p id="loginError" style="color:#E63946; margin-top:10px;"></p>
   </div>
 </section>
 
 <section id="adminSection" style="display:none;">
   <h2>Admin Dashboard</h2>
-
   <div class="admin-stats">
     <div class="stat-card">
       <div class="stat-number" id="totalCount">0</div>
       <div class="stat-label">Total Patients</div>
     </div>
-
     <div class="stat-card">
       <div class="stat-number" id="criticalCount">0</div>
       <div class="stat-label">Critical</div>
@@ -229,18 +192,14 @@
       <div class="stat-number" id="urgentCount">0</div>
       <div class="stat-label">Urgent</div>
     </div>
-
     <div class="stat-card">
       <div class="stat-number" id="normalCount">0</div>
       <div class="stat-label">Normal</div>
     </div>
-
   <div class="admin-buttons">
     <button class="admin-btn danger" onclick="clearAllPatients()">Clear System</button>
   </div>
-  <button class="admin-btn danger" onclick="adminLogout()">
-  Logout
-</button>
+  <button class="admin-btn danger" onclick="adminLogout()">Logout</button>
 </section>
 
  <footer class="footer">
@@ -257,332 +216,282 @@
     </footer>
 
 
-
-
 <script>
+  // BACKEND URL
+  const API_URL = "http://127.0.0.1:8000";
+
   // GLOBAL PATIENT DATA
   let patients = [];
 
   // UPDATE PAIN DISPLAY (SLIDER)
-function updatePain(value) {
-  document.getElementById("painValue").innerText = value;
-}
-
-  // SUBMIT NEW PATIENT
-  // - Calculate severity
-  // - Add to patient list
-  // - Show result box
-function submitPatient() {
-  let name = document.getElementById("patientName").value;
-  let symptom = document.getElementById("symptom").value;
-  let pain = Number(document.getElementById("pain").value);
-
-  let age = Number(document.querySelector("input[placeholder='Age (years)']").value);
-
-  let severity = "Normal";
-  let score = 40;
-  let reason = "Mild condition";
-
-  // normalize symptom
-  let s = symptom.toLowerCase();
-
-  // 🔴 CRITICAL RULES
-  if (
-    (s === "chest pain" && pain >= 6) ||
-    (s === "breathing difficulty") ||
-    (s === "fainting") ||
-    (age >= 65 && pain >= 5)
-  ) {
-    severity = "Critical";
-    score = 90 + Math.floor(Math.random() * 10);
-    reason = "High-risk symptom detected";
+  function updatePain(value) {
+    document.getElementById("painValue").innerText = value;
   }
 
-  // 🟠 URGENT RULES
-  else if (
-    pain >= 5 ||
-    s === "irregular heartbeat" ||
-    s === "bleeding"
-  ) {
-    severity = "Urgent";
-    score = 60 + Math.floor(Math.random() * 20);
-    reason = "Moderate risk condition";
+  // SUBMIT NEW PATIENT — CALLS BACKEND AI
+  async function submitPatient() {
+    let name = document.getElementById("patientName").value;
+    let age = parseInt(document.getElementById("patientAge").value);
+    let heartRate = parseInt(document.getElementById("heartRate").value);
+    let oxygenLevel = parseInt(document.getElementById("oxygenLevel").value);
+    let bloodPressure = document.getElementById("bloodPressure").value;
+    let symptom = document.getElementById("symptom").value;
+
+    // Basic validation
+    if (!name || !age || !heartRate || !oxygenLevel || !bloodPressure || !symptom) {
+      alert("Please fill in all required fields including Heart Rate and Oxygen Level.");
+      return;
+    }
+
+    let box = document.getElementById("resultBox");
+    box.innerHTML = "⏳ Analyzing patient with AI...";
+    box.style.display = "block";
+
+    try {
+      // STEP 1 — Add patient to backend
+      const res1 = await fetch(`${API_URL}/patients`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name,
+          age: age,
+          heart_rate: heartRate,
+          oxygen_level: oxygenLevel,
+          blood_pressure: bloodPressure,
+          symptom: symptom
+        })
+      });
+      const data1 = await res1.json();
+      const patientId = data1.patient_id;
+
+      // STEP 2 — Run AI triage
+      const res2 = await fetch(`${API_URL}/triage/${patientId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({})
+      });
+      const data2 = await res2.json();
+
+      const severity = data2.result.severity;
+      const riskScore = data2.result.risk_score;
+      const reason = data2.result.reason;
+
+      // STEP 3 — Save to local list
+      patients.push({ name, symptom, severity, score: riskScore, reason });
+
+      // STEP 4 — Show result box
+      box.className = "card";
+      if (severity === "Critical") box.classList.add("red");
+      else if (severity === "Urgent") box.classList.add("orange");
+      else box.classList.add("green");
+
+      box.innerHTML = `
+        <b>${severity}</b><br>
+        Patient: ${name}<br>
+        Risk Score: ${riskScore}%<br>
+        Reason: ${reason}
+      `;
+
+      // STEP 5 — Update admin stats
+      updateAdminStats();
+
+      // STEP 6 — Refresh queue counts from backend
+      loadQueueStats();
+
+    } catch (err) {
+      box.innerHTML = "❌ Error connecting to backend. Make sure the server is running on port 8000.";
+      console.error(err);
+    }
   }
 
-  // SAVE PATIENT
-  patients.push({ name, symptom, pain, severity, score, reason });
+  // LOAD QUEUE STATS FROM BACKEND
+  async function loadQueueStats() {
+    try {
+      const res = await fetch(`${API_URL}/queue`);
+      const data = await res.json();
+      const queue = data.queue;
 
-  // SHOW RESULT ONLY
-  let box = document.getElementById("resultBox");
-  box.style.display = "block";
+      const total = queue.length;
+      const critical = queue.filter(p => p.severity === "Critical").length;
+      const urgent = queue.filter(p => p.severity === "Urgent").length;
+      const normal = queue.filter(p => p.severity === "Normal").length;
 
-  setTimeout(() => {
-    box.classList.add("show");
-  }, 10);
+      document.getElementById("totalQueueCount").innerText = total;
+      document.getElementById("criticalQueueCount").innerText = critical;
+      document.getElementById("urgentNormalQueueCount").innerText = urgent + normal;
+      document.getElementById("urgentQueueCount").innerText = urgent;
+      document.getElementById("normalQueueCount").innerText = normal;
 
-  box.className = "card";
-  if (severity === "Critical") box.classList.add("red");
-  else if (severity === "Urgent") box.classList.add("orange");
-  else box.classList.add("green");
-
-  box.innerHTML = `
-    <b>${severity}</b><br>
-    Patient: ${name}<br>
-    Risk Score: ${score}%<br>
-    Reason: ${reason}
-  `;
-}
-
-// TOGGLE PATIENT LIST VIEW
-function toggleAllPatients() {
-  let container = document.getElementById("allPatients");
-
-  if (container.style.display === "none" || container.style.display === "") {
-    container.style.display = "grid";
-    container.style.gridTemplateColumns = "repeat(2, 1fr)";
-container.style.gap = "1rem";
-    renderAllPatients(); // only render when opened
-  } else {
-    container.style.display = "none";
+    } catch (err) {
+      console.error("Failed to load queue stats:", err);
+    }
   }
-}
 
-// RENDER ALL PATIENTS
-function renderAllPatients() {
-  let container = document.getElementById("allPatients");
+  // TOGGLE PATIENT LIST VIEW
+  function toggleAllPatients() {
+    let container = document.getElementById("allPatients");
+    if (container.style.display === "none" || container.style.display === "") {
+      container.style.display = "grid";
+      container.style.gridTemplateColumns = "repeat(2, 1fr)";
+      container.style.gap = "1rem";
+      renderAllPatients();
+    } else {
+      container.style.display = "none";
+    }
+  }
 
-  container.innerHTML = `
-    <h2 style="width:100%; text-align:center; color:#F5F5F5;">
-      Patient List
-    </h2>
-  `;
-  patients
-    .sort((a, b) => b.score - a.score)
-    .forEach(p => {
-
+  // RENDER ALL PATIENTS
+  function renderAllPatients() {
+    let container = document.getElementById("allPatients");
+    container.innerHTML = `<h2 style="width:100%; text-align:center; color:#F5F5F5;">Patient List</h2>`;
+    patients.sort((a, b) => b.score - a.score).forEach(p => {
       let typeClass = p.severity.toLowerCase();
-
       container.innerHTML += `
-      
         <div class="patient-bar ${typeClass}">
-          
           <div class="patient-info">
-            
             <div class="patient-name">${p.name}</div>
             <div class="patient-symptom">${p.symptom}</div>
           </div>
-
           <div class="score-container">
             <div class="score-bar">
               <div class="score-fill" style="width:${p.score}%"></div>
             </div>
             <div class="badge">${p.severity}</div>
           </div>
-
         </div>
       `;
     });
-}
-
-// REFRESH QUEUE + SCROLL
-function refreshQueueAndScroll() {
-  toggleAllPatients();   // show list
-  refreshQueue();        // render data
-
-  // smooth scroll after render
-  setTimeout(() => {
-    document.getElementById("queuelist")
-      .scrollIntoView({ behavior: "smooth" });
-  }, 50);
-}
-
-// QUEUE RENDER (SORTED + LABELLED)
-function refreshQueue() {
-
-  let container = document.getElementById("allPatients");
-
-  container.innerHTML = `
-    <h2 style="width:100%; text-align:center; color:#F5F5F5; margin-bottom:1rem;">
-      Queue List
-    </h2>
-  `;
-
-  const priorityOrder = { Critical: 3, Urgent: 2, Normal: 1 };
-
-  patients.sort((a, b) => {
-    if (priorityOrder[b.severity] !== priorityOrder[a.severity]) {
-      return priorityOrder[b.severity] - priorityOrder[a.severity];
-    }
-    return b.score - a.score;
-  });
-
-  let criticalCount = 0;
-  let urgentCount = 0;
-  let normalCount = 0;
-
-  patients.forEach(p => {
-
-    let label = "";
-
-    if (p.severity === "Critical") {
-      criticalCount++;
-      label = `Critical ${criticalCount}`;
-    } 
-    else if (p.severity === "Urgent") {
-      urgentCount++;
-      label = `Urgent ${urgentCount}`;
-    } 
-    else {
-      normalCount++;
-      label = `Normal ${normalCount}`;
-    }
-
-    container.innerHTML += `
-      <div class="patient-bar ${p.severity.toLowerCase()}">
-
-        <div class="patient-info">
-          <div class="patient-name">
-            ${label} - ${p.name}
-          </div>
-          <div class="patient-symptom">
-            ${p.symptom}
-          </div>
-        </div>
-
-        <div class="score-container">
-          <div class="badge">${p.severity}</div>
-          <div class="score-bar">
-            <div class="score-fill" style="width:${p.score}%"></div>
-          </div>
-          <span>${p.score}%</span>
-        </div>
-
-      </div>
-    `;
-  });
-
-  container.style.display = "flex";
-}
-
-// VIEW ONLY CRITICAL CASES
-function viewCriticalCases() {
-  let container = document.getElementById("allPatients");
-
-  // show section
-  container.style.display = "grid";
-  container.style.gridTemplateColumns = "repeat(2, 1fr)";
-  container.style.gap = "1rem";
-
-  // filter only critical patients
-  let criticalPatients = patients
-    .filter(p => p.severity === "Critical")
-    .sort((a, b) => b.score - a.score);
-
-  container.innerHTML = `
-    <h2 style="width:100%; text-align:center; color:#F5F5F5; margin-bottom:1rem;">
-      Critical Cases
-    </h2>
-  `;
-
-  let criticalCount = 0;
-
-  criticalPatients.forEach(p => {
-    criticalCount++;
-
-    container.innerHTML += `
-      <div class="patient-bar critical">
-
-        <div class="patient-info">
-          <div class="patient-name">
-            Critical ${criticalCount} - ${p.name}
-          </div>
-          <div class="patient-symptom">
-            ${p.symptom}
-          </div>
-        </div>
-
-        <div class="score-container">
-          <div class="badge">Critical</div>
-          <div class="score-bar">
-            <div class="score-fill" style="width:${p.score}%"></div>
-          </div>
-          <span>${p.score}%</span>
-        </div>
-
-      </div>
-    `;
-  });
-
-  // smooth scroll
-  setTimeout(() => {
-    document.getElementById("queuelist")
-      .scrollIntoView({ behavior: "smooth" });
-  }, 50);
-}
-
-function updateAdminStats() {
-  let total = patients.length;
-  let critical = patients.filter(p => p.severity === "Critical").length;
-  let urgent = patients.filter(p => p.severity === "Urgent").length;
-  let normal = patients.filter(p => p.severity === "Normal").length;
-
-  document.getElementById("totalCount").innerText = total;
-  document.getElementById("criticalCount").innerText = critical;
-  document.getElementById("urgentCount").innerText = urgent;
-  document.getElementById("normalCount").innerText = normal;
-}
-
-function adminLogin() {
-  let user = document.getElementById("adminUser").value;
-  let pass = document.getElementById("adminPass").value;
-
-  let error = document.getElementById("loginError");
-
-  // simple demo login (you can change later)
-  if (user === "admin" && pass === "1234") {
-
-    document.getElementById("loginSection").style.display = "none";
-    document.getElementById("adminSection").style.display = "block";
-
-    updateAdminStats(); // load dashboard data
-  } else {
-    error.innerText = "Invalid username or password";
   }
-}
 
-function clearAllPatients() {
-  patients = []; // reset array
+  // REFRESH QUEUE + SCROLL
+  function refreshQueueAndScroll() {
+    loadQueueStats();
+    toggleAllPatients();
+    refreshQueue();
+    setTimeout(() => {
+      document.getElementById("queuelist").scrollIntoView({ behavior: "smooth" });
+    }, 50);
+  }
 
-  // clear UI sections
-  document.getElementById("resultBox").innerHTML = "";
-  document.getElementById("allPatients").innerHTML = "";
+  // QUEUE RENDER (SORTED + LABELLED)
+  function refreshQueue() {
+    let container = document.getElementById("allPatients");
+    container.innerHTML = `<h2 style="width:100%; text-align:center; color:#F5F5F5; margin-bottom:1rem;">Queue List</h2>`;
+    const priorityOrder = { Critical: 3, Urgent: 2, Normal: 1 };
+    patients.sort((a, b) => {
+      if (priorityOrder[b.severity] !== priorityOrder[a.severity]) {
+        return priorityOrder[b.severity] - priorityOrder[a.severity];
+      }
+      return b.score - a.score;
+    });
+    let criticalCount = 0, urgentCount = 0, normalCount = 0;
+    patients.forEach(p => {
+      let label = "";
+      if (p.severity === "Critical") { criticalCount++; label = `Critical ${criticalCount}`; }
+      else if (p.severity === "Urgent") { urgentCount++; label = `Urgent ${urgentCount}`; }
+      else { normalCount++; label = `Normal ${normalCount}`; }
+      container.innerHTML += `
+        <div class="patient-bar ${p.severity.toLowerCase()}">
+          <div class="patient-info">
+            <div class="patient-name">${label} - ${p.name}</div>
+            <div class="patient-symptom">${p.symptom}</div>
+          </div>
+          <div class="score-container">
+            <div class="badge">${p.severity}</div>
+            <div class="score-bar">
+              <div class="score-fill" style="width:${p.score}%"></div>
+            </div>
+            <span>${p.score}%</span>
+          </div>
+        </div>
+      `;
+    });
+    container.style.display = "flex";
+  }
 
-  // reset admin stats
-  updateAdminStats();
+  // VIEW ONLY CRITICAL CASES
+  function viewCriticalCases() {
+    let container = document.getElementById("allPatients");
+    container.style.display = "grid";
+    container.style.gridTemplateColumns = "repeat(2, 1fr)";
+    container.style.gap = "1rem";
+    let criticalPatients = patients.filter(p => p.severity === "Critical").sort((a, b) => b.score - a.score);
+    container.innerHTML = `<h2 style="width:100%; text-align:center; color:#F5F5F5; margin-bottom:1rem;">Critical Cases</h2>`;
+    let criticalCount = 0;
+    criticalPatients.forEach(p => {
+      criticalCount++;
+      container.innerHTML += `
+        <div class="patient-bar critical">
+          <div class="patient-info">
+            <div class="patient-name">Critical ${criticalCount} - ${p.name}</div>
+            <div class="patient-symptom">${p.symptom}</div>
+          </div>
+          <div class="score-container">
+            <div class="badge">Critical</div>
+            <div class="score-bar">
+              <div class="score-fill" style="width:${p.score}%"></div>
+            </div>
+            <span>${p.score}%</span>
+          </div>
+        </div>
+      `;
+    });
+    setTimeout(() => {
+      document.getElementById("queuelist").scrollIntoView({ behavior: "smooth" });
+    }, 50);
+  }
 
-  // optional: hide queue list
-  document.getElementById("allPatients").style.display = "none";
-}
+  // UPDATE ADMIN STATS
+  function updateAdminStats() {
+    let total = patients.length;
+    let critical = patients.filter(p => p.severity === "Critical").length;
+    let urgent = patients.filter(p => p.severity === "Urgent").length;
+    let normal = patients.filter(p => p.severity === "Normal").length;
+    document.getElementById("totalCount").innerText = total;
+    document.getElementById("criticalCount").innerText = critical;
+    document.getElementById("urgentCount").innerText = urgent;
+    document.getElementById("normalCount").innerText = normal;
+  }
 
-function adminLogout() {
-  if (!confirm("Are you sure you want to logout?")) return;
+  // ADMIN LOGIN
+  function adminLogin() {
+    let user = document.getElementById("adminUser").value;
+    let pass = document.getElementById("adminPass").value;
+    let error = document.getElementById("loginError");
+    if (user === "admin" && pass === "1234") {
+      document.getElementById("loginSection").style.display = "none";
+      document.getElementById("adminSection").style.display = "block";
+      updateAdminStats();
+    } else {
+      error.innerText = "Invalid username or password";
+    }
+  }
 
-  document.getElementById("adminSection").style.display = "none";
-  document.getElementById("loginSection").style.display = "block";
+  // CLEAR ALL PATIENTS
+  function clearAllPatients() {
+    patients = [];
+    document.getElementById("resultBox").innerHTML = "";
+    document.getElementById("allPatients").innerHTML = "";
+    updateAdminStats();
+    document.getElementById("allPatients").style.display = "none";
+  }
 
-  document.getElementById("adminUser").value = "";
-  document.getElementById("adminPass").value = "";
-  document.getElementById("loginError").innerText = "";
-}
+  // ADMIN LOGOUT
+  function adminLogout() {
+    if (!confirm("Are you sure you want to logout?")) return;
+    document.getElementById("adminSection").style.display = "none";
+    document.getElementById("loginSection").style.display = "block";
+    document.getElementById("adminUser").value = "";
+    document.getElementById("adminPass").value = "";
+    document.getElementById("loginError").innerText = "";
+  }
+
+  // LOAD QUEUE STATS ON PAGE LOAD
+  window.onload = function() {
+    loadQueueStats();
+  };
 
 </script>
 
-
-
-
-
-
-
-
-
-
+</body>
+</html>
