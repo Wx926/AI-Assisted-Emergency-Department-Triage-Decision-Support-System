@@ -1,497 +1,275 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>TriagePulse - AI Emergency Triage</title>
-    <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="index.css">
+  <style>
+    .live-stats-banner {
+      background: #1a1a1a;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      border-bottom: 2px solid #E63946;
+      margin-top: 100px;
+      flex-wrap: wrap;
+    }
+    .live-stat-item { text-align: center; color: #f5f5f5; }
+    .live-stat-number { font-size: 2rem; font-weight: bold; color: #E63946; }
+    .live-stat-label { font-size: 0.8rem; color: #aaa; text-transform: uppercase; }
+    .live-clock { color: #E63946; font-size: 1rem; font-weight: bold; text-align: center; padding: 0.3rem 0; background: #111; position: fixed; top: 0; width: 100%; z-index: 1001; }
+    .nav { top: 28px !important; }
+    .how-it-works { background: #111; padding: 5rem 0; }
+    .how-it-works .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+    .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 3rem; }
+    .step-card { background: #0a0a0a; border: 1px solid #1a1a1a; padding: 2rem; border-radius: 12px; text-align: center; transition: all 0.3s ease; }
+    .step-card:hover { border-color: #E63946; transform: translateY(-5px); }
+    .step-number { font-size: 3rem; font-weight: bold; color: #E63946; margin-bottom: 1rem; }
+    .step-title { font-size: 1.3rem; color: #f5f5f5; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 2px; }
+    .step-desc { color: #aaa; font-size: 0.9rem; line-height: 1.6; }
+    .why-section { background: #0a0a0a; padding: 5rem 0; }
+    .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-top: 3rem; }
+    .why-card { background: #111; border: 1px solid #1a1a1a; padding: 2rem; border-radius: 12px; transition: all 0.3s ease; }
+    .why-card:hover { border-color: #E63946; transform: translateY(-5px); }
+    .why-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+    .why-title { font-size: 1.2rem; color: #E63946; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px; }
+    .why-desc { color: #aaa; font-size: 0.9rem; line-height: 1.6; }
+    .malaysia-section { background: #1a1a1a; padding: 5rem 0; border-top: 2px solid #E63946; }
+    .malaysia-content { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+    .malaysia-text h2 { color: #f5f5f5; margin-bottom: 1rem; }
+    .malaysia-text p { color: #aaa; line-height: 1.8; margin-bottom: 1rem; }
+    .malaysia-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .malaysia-stat { background: #0a0a0a; padding: 1.5rem; border-radius: 12px; border: 1px solid #333; text-align: center; }
+    .malaysia-stat-number { font-size: 2rem; font-weight: bold; color: #E63946; }
+    .malaysia-stat-label { color: #aaa; font-size: 0.8rem; margin-top: 0.3rem; }
+    .cta-section { background: #E63946; padding: 4rem 0; text-align: center; }
+    .cta-section h2 { color: #fff; margin-bottom: 1rem; }
+    .cta-section p { color: rgba(255,255,255,0.8); margin-bottom: 2rem; }
+    .cta-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-white { background: #fff; color: #E63946; padding: 1rem 2.5rem; text-decoration: none; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.3s ease; border: 2px solid #fff; }
+    .btn-white:hover { background: transparent; color: #fff; }
+    .btn-outline-white { background: transparent; color: #fff; padding: 1rem 2.5rem; text-decoration: none; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.3s ease; border: 2px solid #fff; }
+    .btn-outline-white:hover { background: #fff; color: #E63946; }
+    @media (max-width: 768px) { .malaysia-content { grid-template-columns: 1fr; } .live-stats-banner { gap: 1rem; } }
+  </style>
 </head>
-
 <body>
+
+<!-- LIVE CLOCK -->
+<div class="live-clock" id="liveClock">Loading...</div>
 
 <!-- NAV -->
 <div class="nav">
   <div class="nav-container">
-    <div class="logo">Triage Pulse</div>
-
+    <div class="logo" onclick="window.location='index.html'">TriagePulse</div>
     <ul class="nav-links">
-      <li><a href="#home" class="nav-link">Home</a></li>
-      <li><a href="#intake" class="nav-link">Intake</a></li>
-      <li><a href="#queue" class="nav-link">Queue</a></li>
-      <li><a href="#admin" onclick="toggleAdmin(event)" class="nav-link">Admin</a></li>
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="intake.html" class="nav-link">Intake</a></li>
+      <li><a href="queue.html" class="nav-link">Queue</a></li>
+      <li><a href="admin.html" class="nav-link">Admin</a></li>
     </ul>
-    <button class="intake-btn" onclick="refreshQueueAndScroll()">
-            View Queue
-          </button>
+    <button class="intake-btn" onclick="window.location='intake.html'">Begin Triage</button>
   </div>
 </div>
 
-<!-- home -->
- <section id="home" class="main">
+<!-- LIVE STATS BANNER -->
+<div class="live-stats-banner">
+  <div class="live-stat-item">
+    <div class="live-stat-number" id="bannerTotal">0</div>
+    <div class="live-stat-label">Total Patients</div>
+  </div>
+  <div class="live-stat-item">
+    <div class="live-stat-number" id="bannerCritical" style="color:#E63946;">0</div>
+    <div class="live-stat-label">Critical</div>
+  </div>
+  <div class="live-stat-item">
+    <div class="live-stat-number" id="bannerUrgent" style="color:#f4a261;">0</div>
+    <div class="live-stat-label">Urgent</div>
+  </div>
+  <div class="live-stat-item">
+    <div class="live-stat-number" id="bannerNormal" style="color:#2a9d8f;">0</div>
+    <div class="live-stat-label">Normal</div>
+  </div>
+  <div class="live-stat-item">
+    <div class="live-stat-number" id="bannerAlerts" style="color:#f4a261;">0</div>
+    <div class="live-stat-label">Active Alerts</div>
+  </div>
+</div>
+
+<!-- HERO -->
+<section id="home" class="main">
   <div class="main-bg"></div>
   <div class="container">
     <div class="main-content">
       <h1>Smarter Decisions<br><span>Faster Emergency Care</span></h1>
-      <p class="main-subtitle">An AI-assisted triage system that analyzes patient conditions in real-time to prioritize critical cases efficiently.</p>
+      <p class="main-subtitle">An AI-assisted triage system that analyzes patient conditions in real-time to prioritize critical cases efficiently. Built for Malaysia's Emergency Departments.</p>
       <div class="main-buttons">
-        <a href="#intake" class="btn-primary">Begin Triage</a>
+        <a href="intake.html" class="btn-primary">Begin Triage</a>
+        <a href="queue.html" class="btn-primary" style="background:transparent; border:2px solid #fff;">View Queue</a>
       </div>
     </div>
   </div>
- </section>
+</section>
 
- <section class="intake" id="intake">
+<!-- HOW IT WORKS -->
+<section class="how-it-works">
   <div class="container">
     <div class="section-header">
-      <h2>Built for Critical Moments</h2>
-      <p>Real-time AI. Faster triage. Life-saving decisions.</p>
+      <h2>How It Works</h2>
+      <p style="color:#aaa;">Three simple steps to faster, safer emergency triage</p>
     </div>
-    <form class="contact-form fade-in animate">
-      <div class="form-header">
-        <h3>Patient Information Form</h3>
-        <p>Tell us about your symptoms.</p>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-number">01</div>
+        <div class="step-title">Nurse Inputs Vitals</div>
+        <div class="step-desc">Triage nurse enters patient vitals — heart rate, oxygen level, blood pressure, and chief complaint at point of arrival.</div>
       </div>
-      <div class="form-group">
-        <input type="text" placeholder="Patient Name" id="patientName" required="">
-        <input type="text" placeholder="Age (years)" id="patientAge" inputmode="numeric" min="0" max="120" pattern="[0-9]*" required="">
+      <div class="step-card">
+        <div class="step-number">02</div>
+        <div class="step-title">AI Analyzes & Predicts</div>
+        <div class="step-desc">Our hybrid AI model combines rule-based safety checks with Random Forest machine learning to predict severity and risk score instantly.</div>
       </div>
-      <div class="form-group">
-        <input type="text" placeholder="Heart Rate (bpm)" id="heartRate" inputmode="numeric" required="">
-        <input type="text" placeholder="Oxygen Level (%)" id="oxygenLevel" inputmode="numeric" required="">
+      <div class="step-card">
+        <div class="step-number">03</div>
+        <div class="step-title">Queue Auto-Updates</div>
+        <div class="step-desc">Patients are automatically sorted by severity. Critical patients rise to the top. Doctors and supervisors get real-time visibility.</div>
       </div>
-      <div class="form-group">
-        <input type="text" placeholder="Blood Pressure (e.g. 120/80)" id="bloodPressure" required="">
-      </div>
-
-      <label for="symptom">Symptoms:</label>
-        <select id="symptom" name="symptoms">
-          <option value="">Select your symptoms</option>
-          <optgroup label="Cardiac">
-            <option value="chest pain">Chest Pain</option>
-            <option value="irregular heartbeat">Irregular Heartbeat</option>
-            <option value="fainting">Fainting</option>
-          </optgroup>
-          <optgroup label="Respiratory">
-            <option value="difficulty breathing">Breathing Difficulty</option>
-            <option value="cough">Cough</option>
-          </optgroup>
-          <optgroup label="General">
-            <option value="fever">Fever</option>
-            <option value="fatigue">Fatigue</option>
-          </optgroup>
-          <optgroup label="Neurological">
-            <option value="headache">Headache</option>
-            <option value="dizziness">Dizziness</option>
-          </optgroup>
-          <optgroup label="Injury">
-            <option value="injury">Injury</option>
-            <option value="bleeding">Bleeding</option>
-          </optgroup>
-      </select>
-
-      <label>Pain Level: <span id="painValue">5</span></label>
-      <input type="range" min="1" max="10" value="5" id="pain" oninput="updatePain(this.value)">
-      <div class="pain-labels">
-        <span>Mild</span>
-        <span>Moderate</span>
-        <span>Severe</span>
-      </div>
-      
-      <textarea placeholder="Describe your vital sign" id="vitalNotes" required=""></textarea>
-      <button type="button" class="form-submit" onclick="submitPatient();">
-        <span>Submit and Queue</span>
-      </button>
-    </form>
-    <div id="resultBox"></div>
+    </div>
   </div>
- </section>
+</section>
 
- <section class="queue" id="queue">
+<!-- WHY TRIAGEPULSE -->
+<section class="why-section">
   <div class="container">
-    <div class="queue-grid" id="queueContainer">
-
-      <!-- TOTAL QUEUE -->
-      <div class="queue-card">
-          <h3 class="case-name">Total Queue</h3>
-          <div class="case-number" id="totalQueueCount">0</div>
-          <ul class="case-features">
-              <li>Active patients in system</li>
-              <li>AI triage processing live</li>
-              <li>Auto priority sorting enabled</li>
-              <li>Real-time updates</li>
-              <li>Emergency mode active</li>
-          </ul>
-          <button class="btn-primary" onclick="refreshQueueAndScroll()" style="width: 100%; text-align: center;">
-            Refresh Queue
-          </button>
-      </div>
-
-      <!-- CRITICAL -->
-      <div class="queue-card featured">
-          <h3 class="case-name">Critical Cases</h3>
-          <div class="case-number" id="criticalQueueCount">0</div>
-          <ul class="case-features">
-              <li>🔴 Immediate attention required</li>
-              <li>Low SpO₂ or chest pain cases</li>
-              <li>Top priority in queue</li>
-              <li>Auto-alert system active</li>
-              <li>Doctor notification enabled</li>
-          </ul>
-          <button class="btn-primary" onclick="viewCriticalCases()" style="width: 100%; text-align: center;">
-              View Critical
-          </button>
-      </div>
-
-      <!-- URGENT + NORMAL -->
-      <div class="queue-card">
-          <h3 class="case-name">Urgent & Normal</h3>
-          <div class="case-number" id="urgentNormalQueueCount">0</div>
-          <ul class="case-features">
-              <li>🟠 Urgent: <span id="urgentQueueCount">0</span> patients</li>
-              <li>🟢 Normal: <span id="normalQueueCount">0</span> patients</li>
-              <li>Estimated wait time: 10-30 min</li>
-              <li>Queue optimized by AI score</li>
-              <li>Stable monitoring active</li>
-          </ul>
-          <button class="btn-primary" onclick="toggleAllPatients()" style="width: 100%; text-align: center;">
-              <a href="#queuelist" style="text-decoration: none; color: #f5f5f5;">View All Patients</a>
-          </button>
-      </div>
-
+    <div class="section-header">
+      <h2>Why TriagePulse</h2>
+      <p style="color:#aaa;">Built to solve real emergency department challenges</p>
     </div>
-  </div>
- </section>
-
- <section class="queuelist" id="queuelist">
-    <div id="allPatients" class="queue-grid" style="display:none; margin-top:2rem;">
-      <h2>Patient List</h2>
+    <div class="why-grid">
+      <div class="why-card">
+        <div class="why-icon">⚡</div>
+        <div class="why-title">Faster Triage</div>
+        <div class="why-desc">AI-assisted prioritization reduces time to identify critical patients. No more manual sorting under workload pressure.</div>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">🧠</div>
+        <div class="why-title">AI-Powered</div>
+        <div class="why-desc">Hybrid model combining clinical safety rules with Random Forest ML. Explainable results nurses and doctors can trust.</div>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">📊</div>
+        <div class="why-title">Real-Time Queue</div>
+        <div class="why-desc">Live dashboard shows ED congestion, active alerts, and patient priority at a glance. Auto-refreshes every 30 seconds.</div>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">🛡️</div>
+        <div class="why-title">Decision Support Only</div>
+        <div class="why-desc">AI recommends — clinicians decide. Final triage authority always remains with the trained medical professional.</div>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">🔴</div>
+        <div class="why-title">Critical Alerts</div>
+        <div class="why-desc">Automatic alerts fire when a patient is classified as Critical. Supervisors are notified instantly for immediate action.</div>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">📋</div>
+        <div class="why-title">Full Audit Trail</div>
+        <div class="why-desc">Every triage decision is logged with timestamp and reason. Full patient history available to admin dashboard.</div>
+      </div>
     </div>
- </section>
-
- <section id="loginSection" class="login-section">
-  <div class="login-box">
-    <h2>Admin Login</h2>
-    <input type="text" id="adminUser" placeholder="Username">
-    <input type="password" id="adminPass" placeholder="Password">
-    <button onclick="adminLogin()" class="admin-btn">Login</button>
-    <p id="loginError" style="color:#E63946; margin-top:10px;"></p>
   </div>
 </section>
 
-<section id="adminSection" style="display:none;">
-  <h2>Admin Dashboard</h2>
-  <div class="admin-stats">
-    <div class="stat-card">
-      <div class="stat-number" id="totalCount">0</div>
-      <div class="stat-label">Total Patients</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-number" id="criticalCount">0</div>
-      <div class="stat-label">Critical</div>
-    </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-number" id="urgentCount">0</div>
-      <div class="stat-label">Urgent</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-number" id="normalCount">0</div>
-      <div class="stat-label">Normal</div>
-    </div>
-  <div class="admin-buttons">
-    <button class="admin-btn danger" onclick="clearAllPatients()">Clear System</button>
-  </div>
-  <button class="admin-btn danger" onclick="adminLogout()">Logout</button>
-</section>
-
- <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-links">
-                <a href="#home">Home</a>
-                <a href="#intake">Intake</a>
-                <a href="#queue">Queue</a>
-            </div>
-            <div class="footer-copyright">
-               © 2026 Triage Pulse. All rights reserved.
-            </div>
+<!-- MALAYSIA CONTEXT -->
+<section class="malaysia-section">
+  <div class="container">
+    <div class="malaysia-content">
+      <div class="malaysia-text">
+        <h2>Built for Malaysia's EDs</h2>
+        <p>Malaysia is experiencing rapid growth in its ageing population, placing increasing pressure on Emergency Departments nationwide. MOH operational documents identify prolonged bed waiting time as a key contributor to ED overcrowding.</p>
+        <p>Manual triage depends heavily on clinical judgment, which can vary under workload pressure. TriagePulse helps nurses triage consistently and rapidly — even during peak hours.</p>
+        <p style="color:#E63946; font-weight:bold;">AI does not replace the clinician. It makes the clinician faster and more consistent.</p>
+      </div>
+      <div class="malaysia-stats">
+        <div class="malaysia-stat">
+          <div class="malaysia-stat-number">15%</div>
+          <div class="malaysia-stat-label">Malaysia population aged 60+ by 2030</div>
         </div>
-    </footer>
+        <div class="malaysia-stat">
+          <div class="malaysia-stat-number">↑ED</div>
+          <div class="malaysia-stat-label">Rising ED visits due to ageing population</div>
+        </div>
+        <div class="malaysia-stat">
+          <div class="malaysia-stat-number">95%</div>
+          <div class="malaysia-stat-label">AI accuracy on critical patient detection</div>
+        </div>
+        <div class="malaysia-stat">
+          <div class="malaysia-stat-number">3s</div>
+          <div class="malaysia-stat-label">Average AI triage prediction time</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2>Ready to Start Triaging?</h2>
+    <p>Begin entering patients or check the current ED queue status.</p>
+    <div class="cta-buttons">
+      <a href="intake.html" class="btn-white">Begin Triage</a>
+      <a href="queue.html" class="btn-outline-white">View Queue</a>
+      <a href="admin.html" class="btn-outline-white">Admin Login</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-content">
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="intake.html">Intake</a>
+      <a href="queue.html">Queue</a>
+      <a href="admin.html">Admin</a>
+    </div>
+    <div class="footer-copyright">© 2026 TriagePulse. All rights reserved. | For clinical staff use only.</div>
+  </div>
+</footer>
 
 <script>
-  // BACKEND URL
   const API_URL = "http://127.0.0.1:8000";
 
-  // GLOBAL PATIENT DATA
-  let patients = [];
-
-  // UPDATE PAIN DISPLAY (SLIDER)
-  function updatePain(value) {
-    document.getElementById("painValue").innerText = value;
-  }
-
-  // SUBMIT NEW PATIENT — CALLS BACKEND AI
-  async function submitPatient() {
-    let name = document.getElementById("patientName").value;
-    let age = parseInt(document.getElementById("patientAge").value);
-    let heartRate = parseInt(document.getElementById("heartRate").value);
-    let oxygenLevel = parseInt(document.getElementById("oxygenLevel").value);
-    let bloodPressure = document.getElementById("bloodPressure").value;
-    let symptom = document.getElementById("symptom").value;
-
-    // Basic validation
-    if (!name || !age || !heartRate || !oxygenLevel || !bloodPressure || !symptom) {
-      alert("Please fill in all required fields including Heart Rate and Oxygen Level.");
-      return;
-    }
-
-    let box = document.getElementById("resultBox");
-    box.innerHTML = "⏳ Analyzing patient with AI...";
-    box.style.display = "block";
-
-    try {
-      // STEP 1 — Add patient to backend
-      const res1 = await fetch(`${API_URL}/patients`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name,
-          age: age,
-          heart_rate: heartRate,
-          oxygen_level: oxygenLevel,
-          blood_pressure: bloodPressure,
-          symptom: symptom
-        })
+  function updateClock() {
+    const now = new Date();
+    document.getElementById("liveClock").innerText =
+      "ED System Time: " + now.toLocaleString("en-MY", {
+        weekday: "long", year: "numeric", month: "long",
+        day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit"
       });
-      const data1 = await res1.json();
-      const patientId = data1.patient_id;
-
-      // STEP 2 — Run AI triage
-      const res2 = await fetch(`${API_URL}/triage/${patientId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({})
-      });
-      const data2 = await res2.json();
-
-      const severity = data2.result.severity;
-      const riskScore = data2.result.risk_score;
-      const reason = data2.result.reason;
-
-      // STEP 3 — Save to local list
-      patients.push({ name, symptom, severity, score: riskScore, reason });
-
-      // STEP 4 — Show result box
-      box.className = "card";
-      if (severity === "Critical") box.classList.add("red");
-      else if (severity === "Urgent") box.classList.add("orange");
-      else box.classList.add("green");
-
-      box.innerHTML = `
-        <b>${severity}</b><br>
-        Patient: ${name}<br>
-        Risk Score: ${riskScore}%<br>
-        Reason: ${reason}
-      `;
-
-      // STEP 5 — Update admin stats
-      updateAdminStats();
-
-      // STEP 6 — Refresh queue counts from backend
-      loadQueueStats();
-
-    } catch (err) {
-      box.innerHTML = "❌ Error connecting to backend. Make sure the server is running on port 8000.";
-      console.error(err);
-    }
   }
+  setInterval(updateClock, 1000);
+  updateClock();
 
-  // LOAD QUEUE STATS FROM BACKEND
-  async function loadQueueStats() {
+  async function loadBannerStats() {
     try {
       const res = await fetch(`${API_URL}/queue`);
       const data = await res.json();
       const queue = data.queue;
-
-      const total = queue.length;
-      const critical = queue.filter(p => p.severity === "Critical").length;
-      const urgent = queue.filter(p => p.severity === "Urgent").length;
-      const normal = queue.filter(p => p.severity === "Normal").length;
-
-      document.getElementById("totalQueueCount").innerText = total;
-      document.getElementById("criticalQueueCount").innerText = critical;
-      document.getElementById("urgentNormalQueueCount").innerText = urgent + normal;
-      document.getElementById("urgentQueueCount").innerText = urgent;
-      document.getElementById("normalQueueCount").innerText = normal;
-
-    } catch (err) {
-      console.error("Failed to load queue stats:", err);
-    }
+      document.getElementById("bannerTotal").innerText = queue.length;
+      document.getElementById("bannerCritical").innerText = queue.filter(p => p.severity === "Critical").length;
+      document.getElementById("bannerUrgent").innerText = queue.filter(p => p.severity === "Urgent").length;
+      document.getElementById("bannerNormal").innerText = queue.filter(p => p.severity === "Normal").length;
+      const res2 = await fetch(`${API_URL}/alerts`);
+      const data2 = await res2.json();
+      document.getElementById("bannerAlerts").innerText = data2.alerts.length;
+    } catch (err) { console.error(err); }
   }
 
-  // TOGGLE PATIENT LIST VIEW
-  function toggleAllPatients() {
-    let container = document.getElementById("allPatients");
-    if (container.style.display === "none" || container.style.display === "") {
-      container.style.display = "grid";
-      container.style.gridTemplateColumns = "repeat(2, 1fr)";
-      container.style.gap = "1rem";
-      renderAllPatients();
-    } else {
-      container.style.display = "none";
-    }
-  }
-
-  // RENDER ALL PATIENTS
-  function renderAllPatients() {
-    let container = document.getElementById("allPatients");
-    container.innerHTML = `<h2 style="width:100%; text-align:center; color:#F5F5F5;">Patient List</h2>`;
-    patients.sort((a, b) => b.score - a.score).forEach(p => {
-      let typeClass = p.severity.toLowerCase();
-      container.innerHTML += `
-        <div class="patient-bar ${typeClass}">
-          <div class="patient-info">
-            <div class="patient-name">${p.name}</div>
-            <div class="patient-symptom">${p.symptom}</div>
-          </div>
-          <div class="score-container">
-            <div class="score-bar">
-              <div class="score-fill" style="width:${p.score}%"></div>
-            </div>
-            <div class="badge">${p.severity}</div>
-          </div>
-        </div>
-      `;
-    });
-  }
-
-  // REFRESH QUEUE + SCROLL
-  function refreshQueueAndScroll() {
-    loadQueueStats();
-    toggleAllPatients();
-    refreshQueue();
-    setTimeout(() => {
-      document.getElementById("queuelist").scrollIntoView({ behavior: "smooth" });
-    }, 50);
-  }
-
-  // QUEUE RENDER (SORTED + LABELLED)
-  function refreshQueue() {
-    let container = document.getElementById("allPatients");
-    container.innerHTML = `<h2 style="width:100%; text-align:center; color:#F5F5F5; margin-bottom:1rem;">Queue List</h2>`;
-    const priorityOrder = { Critical: 3, Urgent: 2, Normal: 1 };
-    patients.sort((a, b) => {
-      if (priorityOrder[b.severity] !== priorityOrder[a.severity]) {
-        return priorityOrder[b.severity] - priorityOrder[a.severity];
-      }
-      return b.score - a.score;
-    });
-    let criticalCount = 0, urgentCount = 0, normalCount = 0;
-    patients.forEach(p => {
-      let label = "";
-      if (p.severity === "Critical") { criticalCount++; label = `Critical ${criticalCount}`; }
-      else if (p.severity === "Urgent") { urgentCount++; label = `Urgent ${urgentCount}`; }
-      else { normalCount++; label = `Normal ${normalCount}`; }
-      container.innerHTML += `
-        <div class="patient-bar ${p.severity.toLowerCase()}">
-          <div class="patient-info">
-            <div class="patient-name">${label} - ${p.name}</div>
-            <div class="patient-symptom">${p.symptom}</div>
-          </div>
-          <div class="score-container">
-            <div class="badge">${p.severity}</div>
-            <div class="score-bar">
-              <div class="score-fill" style="width:${p.score}%"></div>
-            </div>
-            <span>${p.score}%</span>
-          </div>
-        </div>
-      `;
-    });
-    container.style.display = "flex";
-  }
-
-  // VIEW ONLY CRITICAL CASES
-  function viewCriticalCases() {
-    let container = document.getElementById("allPatients");
-    container.style.display = "grid";
-    container.style.gridTemplateColumns = "repeat(2, 1fr)";
-    container.style.gap = "1rem";
-    let criticalPatients = patients.filter(p => p.severity === "Critical").sort((a, b) => b.score - a.score);
-    container.innerHTML = `<h2 style="width:100%; text-align:center; color:#F5F5F5; margin-bottom:1rem;">Critical Cases</h2>`;
-    let criticalCount = 0;
-    criticalPatients.forEach(p => {
-      criticalCount++;
-      container.innerHTML += `
-        <div class="patient-bar critical">
-          <div class="patient-info">
-            <div class="patient-name">Critical ${criticalCount} - ${p.name}</div>
-            <div class="patient-symptom">${p.symptom}</div>
-          </div>
-          <div class="score-container">
-            <div class="badge">Critical</div>
-            <div class="score-bar">
-              <div class="score-fill" style="width:${p.score}%"></div>
-            </div>
-            <span>${p.score}%</span>
-          </div>
-        </div>
-      `;
-    });
-    setTimeout(() => {
-      document.getElementById("queuelist").scrollIntoView({ behavior: "smooth" });
-    }, 50);
-  }
-
-  // UPDATE ADMIN STATS
-  function updateAdminStats() {
-    let total = patients.length;
-    let critical = patients.filter(p => p.severity === "Critical").length;
-    let urgent = patients.filter(p => p.severity === "Urgent").length;
-    let normal = patients.filter(p => p.severity === "Normal").length;
-    document.getElementById("totalCount").innerText = total;
-    document.getElementById("criticalCount").innerText = critical;
-    document.getElementById("urgentCount").innerText = urgent;
-    document.getElementById("normalCount").innerText = normal;
-  }
-
-  // ADMIN LOGIN
-  function adminLogin() {
-    let user = document.getElementById("adminUser").value;
-    let pass = document.getElementById("adminPass").value;
-    let error = document.getElementById("loginError");
-    if (user === "admin" && pass === "1234") {
-      document.getElementById("loginSection").style.display = "none";
-      document.getElementById("adminSection").style.display = "block";
-      updateAdminStats();
-    } else {
-      error.innerText = "Invalid username or password";
-    }
-  }
-
-  // CLEAR ALL PATIENTS
-  function clearAllPatients() {
-    patients = [];
-    document.getElementById("resultBox").innerHTML = "";
-    document.getElementById("allPatients").innerHTML = "";
-    updateAdminStats();
-    document.getElementById("allPatients").style.display = "none";
-  }
-
-  // ADMIN LOGOUT
-  function adminLogout() {
-    if (!confirm("Are you sure you want to logout?")) return;
-    document.getElementById("adminSection").style.display = "none";
-    document.getElementById("loginSection").style.display = "block";
-    document.getElementById("adminUser").value = "";
-    document.getElementById("adminPass").value = "";
-    document.getElementById("loginError").innerText = "";
-  }
-
-  // LOAD QUEUE STATS ON PAGE LOAD
-  window.onload = function() {
-    loadQueueStats();
-  };
-
+  setInterval(loadBannerStats, 30000);
+  window.onload = loadBannerStats;
 </script>
-
 </body>
 </html>

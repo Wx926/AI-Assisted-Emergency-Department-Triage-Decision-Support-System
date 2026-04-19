@@ -6,6 +6,10 @@ import os
 
 router = APIRouter()
 
+# Load triage module path once at startup
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "triage_module")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "triage_module")))
+
 
 class PatientInput(BaseModel):
     name: str
@@ -55,7 +59,6 @@ def run_triage(patient_id: int):
             return {"error": "Patient not found"}
 
         # ── Person 1 AI Model Integration ──
-        sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "triage_module")))
         from model_logic import predict_triage
 
         triage_input = {
@@ -139,7 +142,20 @@ def get_queue():
     finally:
         conn.close()
 
-
+@router.post("/discharge/{queue_id}")
+def discharge_patient(queue_id: int):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE queue SET status = 'done' WHERE id = ?",
+            (queue_id,)
+        )
+        conn.commit()
+        return {"message": "Patient discharged successfully", "queue_id": queue_id}
+    finally:
+        conn.close()
+        
 @router.get("/alerts")
 def get_alerts():
     conn = get_connection()
