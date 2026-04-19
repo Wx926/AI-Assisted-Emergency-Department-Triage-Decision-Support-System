@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "triage_module")))
 
-from model_logic import predict_triage
+from triage_module.model_logic import predict_triage
 from queue_manager import add_patient, show_queue
 from monitor import show_monitor
 
