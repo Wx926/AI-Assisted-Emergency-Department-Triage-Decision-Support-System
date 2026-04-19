@@ -19,6 +19,12 @@
     .card.red { background: #2a0a0a; border-color: #E63946; animation: pulse-red 1.5s infinite; }
     .card.orange { background: #2a1500; border-color: #f4a261; }
     .card.green { background: #0a2a0a; border-color: #2a9d8f; }
+        #resultBox {
+      display: block !important;
+      opacity: 1 !important;
+      transform: none !important;
+      color: #f5f5f5 !important;
+    }
     @keyframes pulse-red {
       0% { box-shadow: 0 0 0 0 rgba(230,57,70,0.7); }
       70% { box-shadow: 0 0 0 10px rgba(230,57,70,0); }
@@ -204,8 +210,8 @@
         <b>Symptom:</b> ${symptom}<br>
         <b>AI Reason:</b> ${reason}<br><br>
         <div style="background:#1a1a1a; padding:1rem; border-radius:8px; border-left:3px solid #2a9d8f; margin-top:0.5rem;">
-          <b style="color:#2a9d8f; font-size:0.85rem;">GEMINI CLINICAL SUMMARY</b><br>
-          <span style="font-size:0.9rem; color:#f5f5f5;">${data2.result.gemini_summary || "Summary unavailable"}</span>
+          <b style="color:#2a9d8f; font-size:0.85rem;">✨ GEMINI AI CLINICAL SUMMARY</b><br><br>
+          <span style="font-size:0.9rem; color:#f5f5f5; line-height:1.6;">${data2.result.gemini_summary || "Summary unavailable"}</span>
         </div><br>
         <small style="color:#aaa;">Submitted at ${new Date().toLocaleTimeString()}</small><br><br>
         <a href="queue.html" style="color:#E63946; font-weight:bold;">→ View in Queue</a>
