@@ -246,6 +246,10 @@ recommended given the high-risk vital signs and elevated heart rate.
 
 ---
 
+## Production Considerations
+- Database: SQLite used for prototype. Cloud SQL (PostgreSQL) recommended for production deployment to ensure data persistence across Cloud Run restarts.
+- Gemini API: Integrated via google-generativeai library. Vertex AI recommended for production deployment for better scalability and quota management.
+
 ## 📄 License
 
 This project was built for the MyAI Future Hackathon 2026. For educational and demonstration purposes only.
