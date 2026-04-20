@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>TriagePulse - Queue</title>
+  <link rel="stylesheet" href="index.css">
+  <style>
+    .live-clock { color: #E63946; font-size: 1rem; font-weight: bold; text-align: center; padding: 0.3rem 0; background: #111; position: fixed; top: 0; width: 100%; z-index: 1001; }
+    .nav { top: 28px !important; }
+    .page-header { background: #0a0a0a; padding: 8rem 2rem 3rem 2rem; text-align: center; border-bottom: 2px solid #E63946; margin-top: 28px; }
+    .page-header h1 { color: #f5f5f5; margin-bottom: 0.5rem; }
+    .page-header p { color: #aaa; }
+    .queue-page { background: #0a0a0a; padding: 3rem 0; min-height: 80vh; }
+    .queue-page .container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; }
+    .filter-buttons { display: flex; gap: 1rem; justify-content: center; margin: 2rem 0; flex-wrap: wrap; }
+    .filter-btn { padding: 0.6rem 1.8rem; border: none; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.85rem; transition: all 0.3s ease; }
+    .filter-btn.all { background: #555; color: #fff; }
+    .filter-btn.critical { background: #E63946; color: #fff; }
+    .filter-btn.urgent { background: #f4a261; color: #fff; }
+    .filter-btn.normal { background: #2a9d8f; color: #fff; }
+    .filter-btn.active { outline: 3px solid #fff; transform: scale(1.05); }
+    .queue-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .queue-stat { background: #111; border: 1px solid #1a1a1a; padding: 1.2rem; border-radius: 12px; text-align: center; }
+    .queue-stat-number { font-size: 2rem; font-weight: bold; color: #E63946; }
+    .queue-stat-label { font-size: 0.75rem; color: #aaa; text-transform: uppercase; margin-top: 0.3rem; }
+    .auto-refresh-info { text-align: center; color: #555; font-size: 0.8rem; margin-bottom: 1rem; }
+    .auto-refresh-info span { color: #2a9d8f; }
+    .patient-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1rem; }
+    .refresh-btn { background: #E63946; color: #fff; border: none; padding: 0.8rem 2rem; cursor: pointer; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.3s ease; border-radius: 4px; }
+    .refresh-btn:hover { background: #c62d3a; transform: translateY(-2px); }
+    .loading-text { text-align: center; color: #aaa; padding: 3rem; }
+    .discharge-btn { background: transparent; color: #2a9d8f; border: 1px solid #2a9d8f; padding: 0.4rem 1rem; border-radius: 20px; cursor: pointer; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; transition: all 0.3s ease; }
+    .discharge-btn:hover { background: #2a9d8f; color: #fff; transform: scale(1.05); }
+    .patient-card { display: flex; flex-direction: column; justify-content: space-between; padding: 1.5rem; border-radius: 12px; background: linear-gradient(135deg, #0A0A0A 0%, #0F0F0F 100%); border: 2px solid rgba(255,255,255,0.1); transition: all 0.3s ease; }
+    .patient-card:hover { transform: translateX(3px); }
+    .patient-card.critical-card { border-left: 4px solid #E63946; }
+    .patient-card.urgent-card { border-left: 4px solid #f4a261; }
+    .patient-card.normal-card { border-left: 4px solid #2a9d8f; }
+    .patient-card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .patient-card-info { flex: 1; }
+    .patient-card-name { font-size: 1.05rem; font-weight: bold; color: #f5f5f5; margin-bottom: 0.3rem; }
+    .patient-card-detail { font-size: 0.8rem; color: #aaa; margin-top: 0.2rem; }
+    .patient-card-bottom { display: flex; justify-content: flex-end; align-items: center; margin-top: 1rem; border-top: 1px solid #1a1a1a; padding-top: 0.8rem; }
+    .critical .badge { background: #E63946; color: white; }
+    .urgent .badge { background: #f4a261; color: white; }
+    .normal .badge { background: #2a9d8f; color: white; }
+  </style>
+</head>
+<body>
+
+<div class="live-clock" id="liveClock">Loading...</div>
+
+<div class="nav">
+  <div class="nav-container">
+    <div class="logo" onclick="window.location='index.html'">TriagePulse</div>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="intake.html" class="nav-link">Intake</a></li>
+      <li><a href="queue.html" class="nav-link">Queue</a></li>
+      <li><a href="admin.html" class="nav-link">Admin</a></li>
+    </ul>
+    <button class="intake-btn" onclick="window.location='intake.html'">New Patient</button>
+  </div>
+</div>
+
+<div class="page-header">
+  <h1>Patient Queue</h1>
+  <p>Real-time queue sorted by AI triage severity — click Discharge when patient has been seen</p>
+</div>
+
+<section class="queue-page">
+  <div class="container">
+
+    <div class="queue-stats">
+      <div class="queue-stat">
+        <div class="queue-stat-number" id="totalCount">0</div>
+        <div class="queue-stat-label">Total Waiting</div>
+      </div>
+      <div class="queue-stat">
+        <div class="queue-stat-number" id="criticalCount" style="color:#E63946;">0</div>
+        <div class="queue-stat-label">Critical</div>
+      </div>
+      <div class="queue-stat">
+        <div class="queue-stat-number" id="urgentCount" style="color:#f4a261;">0</div>
+        <div class="queue-stat-label">Urgent</div>
+      </div>
+      <div class="queue-stat">
+        <div class="queue-stat-number" id="normalCount" style="color:#2a9d8f;">0</div>
+        <div class="queue-stat-label">Normal</div>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+      <div class="filter-buttons" style="margin:0;">
+        <button class="filter-btn all active" onclick="filterQueue('all')">All</button>
+        <button class="filter-btn critical" onclick="filterQueue('Critical')">Critical</button>
+        <button class="filter-btn urgent" onclick="filterQueue('Urgent')">Urgent</button>
+        <button class="filter-btn normal" onclick="filterQueue('Normal')">Normal</button>
+      </div>
+      <button class="refresh-btn" onclick="loadQueue()">Refresh Queue</button>
+    </div>
+
+    <div class="auto-refresh-info" style="margin-top:1rem;">
+      Auto-refreshes every <span>30 seconds</span> &nbsp;|&nbsp; Click <b style="color:#2a9d8f;">Discharge</b> when patient has been seen by doctor
+    </div>
+
+    <div id="queueList" class="patient-list" style="margin-top:1.5rem;">
+      <p class="loading-text">Loading queue...</p>
+    </div>
+
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-content">
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="intake.html">Intake</a>
+      <a href="queue.html">Queue</a>
+      <a href="admin.html">Admin</a>
+    </div>
+    <div class="footer-copyright">© 2026 TriagePulse. All rights reserved. | For clinical staff use only.</div>
+  </div>
+</footer>
+
+<script>
+  const API_URL = "https://triagepulse-backend-472704188167.asia-southeast1.run.app";
+  let currentFilter = "all";
+  let allQueue = [];
+
+  function updateClock() {
+    const now = new Date();
+    document.getElementById("liveClock").innerText =
+      "ED System Time: " + now.toLocaleString("en-MY", {
+        weekday: "long", year: "numeric", month: "long",
+        day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit"
+      });
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  async function loadQueue() {
+    try {
+      const res = await fetch(`${API_URL}/queue`);
+      const data = await res.json();
+      allQueue = data.queue;
+
+      const total = allQueue.length;
+      const critical = allQueue.filter(p => p.severity === "Critical").length;
+      const urgent = allQueue.filter(p => p.severity === "Urgent").length;
+      const normal = allQueue.filter(p => p.severity === "Normal").length;
+
+      document.getElementById("totalCount").innerText = total;
+      document.getElementById("criticalCount").innerText = critical;
+      document.getElementById("urgentCount").innerText = urgent;
+      document.getElementById("normalCount").innerText = normal;
+
+      renderQueue(currentFilter);
+    } catch (err) {
+      document.getElementById("queueList").innerHTML = `<p class="loading-text">Failed to load queue. Make sure backend is running on port 8000.</p>`;
+    }
+  }
+
+  function filterQueue(filter) {
+    currentFilter = filter;
+    document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
+    document.querySelector(`.filter-btn.${filter === "all" ? "all" : filter.toLowerCase()}`).classList.add("active");
+    renderQueue(filter);
+  }
+
+  function renderQueue(filter) {
+    let container = document.getElementById("queueList");
+    let filtered = filter === "all" ? allQueue : allQueue.filter(p => p.severity === filter);
+
+    if (filtered.length === 0) {
+      container.innerHTML = `<p class="loading-text">No patients found.</p>`;
+      return;
+    }
+
+    let counts = { Critical: 0, Urgent: 0, Normal: 0 };
+    container.innerHTML = "";
+    filtered.forEach(p => {
+      counts[p.severity]++;
+      let label = `${p.severity} ${counts[p.severity]}`;
+      let cardClass = p.severity.toLowerCase() + "-card";
+      let badgeColor = p.severity === "Critical" ? "#E63946" : p.severity === "Urgent" ? "#f4a261" : "#2a9d8f";
+
+      container.innerHTML += `
+        <div class="patient-card ${cardClass}" id="card-${p.id}">
+          <div class="patient-card-top">
+            <div class="patient-card-info">
+              <div class="patient-card-name">${label} — ${p.name}</div>
+              <div class="patient-card-detail">Age: ${p.age}</div>
+              <div class="patient-card-detail">Arrived: ${p.timestamp || "-"}</div>
+              <div class="patient-card-detail">Status: <span style="color:#f4a261;">Waiting</span></div>
+            </div>
+            <span class="badge" style="background:${badgeColor}; color:#fff; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:bold; margin-left:1rem; white-space:nowrap;">
+              ${p.severity}
+            </span>
+          </div>
+          <div class="patient-card-bottom">
+            <button class="discharge-btn" onclick="dischargePatient(${p.id}, '${p.name}')">
+              ✓ Discharge Patient
+            </button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  async function dischargePatient(queueId, name) {
+    if (!confirm(`Mark ${name} as discharged?`)) return;
+
+    // Fade out card immediately for good UX
+    let card = document.getElementById(`card-${queueId}`);
+    if (card) {
+      card.style.opacity = "0.3";
+      card.style.transition = "opacity 0.5s";
+    }
+
+    try {
+      // Try backend discharge endpoint
+      const res = await fetch(`${API_URL}/discharge/${queueId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({})
+      });
+      // Reload queue after discharge
+      setTimeout(() => loadQueue(), 600);
+    } catch (err) {
+      // If no backend discharge route — remove from local array and re-render
+      allQueue = allQueue.filter(p => p.id !== queueId);
+      setTimeout(() => renderQueue(currentFilter), 600);
+    }
+  }
+
+  setInterval(loadQueue, 30000);
+  window.onload = loadQueue;
+</script>
+</body>
+</html>

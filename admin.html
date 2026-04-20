@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>TriagePulse - Admin</title>
+  <link rel="stylesheet" href="index.css">
+  <style>
+    .live-clock { color: #E63946; font-size: 1rem; font-weight: bold; text-align: center; padding: 0.3rem 0; background: #111; position: fixed; top: 0; width: 100%; z-index: 1001; }
+    .nav { top: 28px !important; }
+    .page-header { background: #0a0a0a; padding: 8rem 2rem 3rem 2rem; text-align: center; border-bottom: 2px solid #E63946; margin-top: 28px; }
+    .page-header h1 { color: #f5f5f5; margin-bottom: 0.5rem; }
+    .page-header p { color: #aaa; }
+
+    /* LOGIN PAGE */
+    .login-page { background: #0a0a0a; min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .login-card { background: #111; border: 1px solid #1a1a1a; border-radius: 16px; padding: 3rem; width: 100%; max-width: 400px; text-align: center; }
+    .login-card h2 { color: #f5f5f5; margin-bottom: 0.5rem; font-size: 2.5rem; }
+    .login-card p { color: #aaa; font-size: 0.85rem; margin-bottom: 2rem; }
+    .login-card input { width: 100%; padding: 0.9rem 1rem; margin: 0.5rem 0; border-radius: 10px; border: 1px solid #333; background: #0a0a0a; color: #f5f5f5; font-size: 0.95rem; transition: all 0.3s ease; }
+    .login-card input:focus { outline: none; border-color: #E63946; }
+    .login-card .admin-btn { width: 100%; padding: 1rem; background: #E63946; color: #fff; border: none; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; border-radius: 8px; margin-top: 1rem; font-size: 0.9rem; transition: all 0.3s ease; }
+    .login-card .admin-btn:hover { background: #c62d3a; transform: translateY(-2px); }
+
+    /* DASHBOARD */
+    .dashboard { display: none; background: #0a0a0a; min-height: 80vh; padding: 3rem 2rem; }
+    .dashboard .container { max-width: 1400px; margin: 0 auto; }
+    .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+    .dashboard-header h2 { color: #f5f5f5; font-size: 2rem; }
+    .dashboard-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .dash-btn { padding: 0.7rem 1.5rem; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.8rem; border-radius: 4px; transition: all 0.3s ease; }
+    .dash-btn.refresh { background: #2a9d8f; color: #fff; }
+    .dash-btn.logout { background: #333; color: #fff; border: 1px solid #555; }
+    .dash-btn:hover { transform: translateY(-2px); }
+
+    /* STATS */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 3rem; }
+
+    /* SECTION TITLE */
+    .section-title { color: #E63946; font-size: 1.2rem; font-weight: bold; margin: 2.5rem 0 1rem 0; border-bottom: 1px solid #1a1a1a; padding-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* CHART */
+    .chart-container { display: flex; align-items: flex-end; gap: 3rem; height: 160px; padding: 1rem 2rem; background: #111; border-radius: 12px; margin: 1rem 0; justify-content: center; border: 1px solid #1a1a1a; }
+    .chart-bar-wrap { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+    .chart-bar { width: 80px; border-radius: 6px 6px 0 0; transition: height 0.8s ease; min-height: 5px; }
+    .chart-bar.critical { background: #E63946; }
+    .chart-bar.urgent { background: #f4a261; }
+    .chart-bar.normal { background: #2a9d8f; }
+    .chart-label { color: #aaa; font-size: 0.85rem; }
+    .chart-value { color: #fff; font-weight: bold; font-size: 1.1rem; }
+
+    /* ALERTS */
+    .alert-item { background: #1a0505; border-left: 4px solid #E63946; padding: 1rem 1.2rem; border-radius: 4px; margin-bottom: 0.5rem; color: #f5f5f5; }
+    .alert-item .alert-name { font-weight: bold; color: #E63946; }
+    .alert-item .alert-time { color: #aaa; font-size: 0.75rem; margin-top: 0.3rem; }
+    .no-alerts { color: #aaa; text-align: center; padding: 2rem; background: #111; border-radius: 8px; border: 1px solid #1a1a1a; }
+
+    /* TABLE */
+    .history-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .history-table th { background: #111; color: #E63946; padding: 0.8rem; text-align: left; border-bottom: 2px solid #1a1a1a; text-transform: uppercase; letter-spacing: 0.5px; }
+    .history-table td { padding: 0.7rem 0.8rem; border-bottom: 1px solid #111; color: #f5f5f5; }
+    .history-table tr:hover { background: #111; }
+    .badge-critical { background: #E63946; color: #fff; padding: 3px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: bold; }
+    .badge-urgent { background: #f4a261; color: #fff; padding: 3px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: bold; }
+    .badge-normal { background: #2a9d8f; color: #fff; padding: 3px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<div class="live-clock" id="liveClock">Loading...</div>
+
+<div class="nav">
+  <div class="nav-container">
+    <div class="logo" onclick="window.location='index.html'">TriagePulse</div>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="intake.html" class="nav-link">Intake</a></li>
+      <li><a href="queue.html" class="nav-link">Queue</a></li>
+      <li><a href="admin.html" class="nav-link">Admin</a></li>
+    </ul>
+    <button class="intake-btn" onclick="window.location='intake.html'">New Patient</button>
+  </div>
+</div>
+
+<div class="page-header">
+  <h1>Admin Portal</h1>
+  <p>For ED supervisors and administrators only</p>
+</div>
+
+<!-- LOGIN -->
+<div class="login-page" id="loginPage">
+  <div class="login-card">
+    <h2>Admin Login</h2>
+    <p>Authorized personnel only. All access is logged.</p>
+    <input type="text" id="adminUser" placeholder="Username">
+    <input type="password" id="adminPass" placeholder="Password" onkeydown="if(event.key==='Enter') adminLogin()">
+    <button class="admin-btn" onclick="adminLogin()">Login</button>
+    <p id="loginError" style="color:#E63946; margin-top:1rem; font-size:0.85rem;"></p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard" id="dashboard">
+  <div class="container">
+
+    <div class="dashboard-header">
+      <div>
+        <h2>Admin Dashboard</h2>
+        <p style="color:#aaa; font-size:0.85rem;">ED Supervisor View — Real-time patient monitoring</p>
+      </div>
+      <div class="dashboard-actions">
+        <button class="dash-btn refresh" onclick="loadDashboard()">Refresh</button>
+        <button class="dash-btn logout" onclick="adminLogout()">Logout</button>
+      </div>
+    </div>
+
+    <!-- STATS CARDS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number" id="totalCount">0</div>
+        <div class="stat-label">Total Patients</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="criticalCount" style="color:#E63946;">0</div>
+        <div class="stat-label">Critical</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="urgentCount" style="color:#f4a261;">0</div>
+        <div class="stat-label">Urgent</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="normalCount" style="color:#2a9d8f;">0</div>
+        <div class="stat-label">Normal</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="alertCount" style="color:#f4a261;">0</div>
+        <div class="stat-label">Active Alerts</div>
+      </div>
+    </div>
+
+    <!-- CHART -->
+    <div class="section-title">Queue Breakdown</div>
+    <div class="chart-container">
+      <div class="chart-bar-wrap">
+        <div class="chart-value" id="chartCriticalVal">0</div>
+        <div class="chart-bar critical" id="chartCritical" style="height:5px;"></div>
+        <div class="chart-label">Critical</div>
+      </div>
+      <div class="chart-bar-wrap">
+        <div class="chart-value" id="chartUrgentVal">0</div>
+        <div class="chart-bar urgent" id="chartUrgent" style="height:5px;"></div>
+        <div class="chart-label">Urgent</div>
+      </div>
+      <div class="chart-bar-wrap">
+        <div class="chart-value" id="chartNormalVal">0</div>
+        <div class="chart-bar normal" id="chartNormal" style="height:5px;"></div>
+        <div class="chart-label">Normal</div>
+      </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="section-title">Active Critical Alerts</div>
+    <div id="alertsPanel"><p class="no-alerts">No active alerts.</p></div>
+
+    <!-- HISTORY TABLE -->
+    <div class="section-title">Patient History</div>
+    <div style="overflow-x:auto; background:#111; border-radius:12px; border:1px solid #1a1a1a;">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Age</th>
+            <th>Severity</th>
+            <th>Status</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody id="historyBody">
+          <tr><td colspan="6" style="text-align:center; color:#aaa; padding:2rem;">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- QUICK LINKS -->
+    <div class="section-title">Quick Actions</div>
+    <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+      <a href="intake.html" class="btn-primary" style="text-decoration:none;">New Patient Intake</a>
+      <a href="queue.html" class="btn-primary" style="text-decoration:none; background:transparent; border:2px solid #E63946; color:#E63946;">View Queue</a>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-content">
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="intake.html">Intake</a>
+      <a href="queue.html">Queue</a>
+      <a href="admin.html">Admin</a>
+    </div>
+    <div class="footer-copyright">© 2026 TriagePulse. All rights reserved. | For clinical staff use only.</div>
+  </div>
+</footer>
+
+<script>
+  const API_URL = "http://127.0.0.1:8000";
+
+  function updateClock() {
+    const now = new Date();
+    document.getElementById("liveClock").innerText =
+      "ED System Time: " + now.toLocaleString("en-MY", {
+        weekday: "long", year: "numeric", month: "long",
+        day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit"
+      });
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  function adminLogin() {
+    let user = document.getElementById("adminUser").value;
+    let pass = document.getElementById("adminPass").value;
+    if (user === "admin" && pass === "1234") {
+      document.getElementById("loginPage").style.display = "none";
+      document.getElementById("dashboard").style.display = "block";
+      loadDashboard();
+    } else {
+      document.getElementById("loginError").innerText = "Invalid username or password.";
+    }
+  }
+
+  function adminLogout() {
+    if (!confirm("Are you sure you want to logout?")) return;
+    document.getElementById("dashboard").style.display = "none";
+    document.getElementById("loginPage").style.display = "flex";
+    document.getElementById("adminUser").value = "";
+    document.getElementById("adminPass").value = "";
+    document.getElementById("loginError").innerText = "";
+  }
+
+  async function loadDashboard() {
+    await loadStats();
+    await loadAlerts();
+    await loadHistory();
+  }
+
+  async function loadStats() {
+    try {
+      const res = await fetch(`${API_URL}/queue`);
+      const data = await res.json();
+      const queue = data.queue;
+
+      const total = queue.length;
+      const critical = queue.filter(p => p.severity === "Critical").length;
+      const urgent = queue.filter(p => p.severity === "Urgent").length;
+      const normal = queue.filter(p => p.severity === "Normal").length;
+
+      document.getElementById("totalCount").innerText = total;
+      document.getElementById("criticalCount").innerText = critical;
+      document.getElementById("urgentCount").innerText = urgent;
+      document.getElementById("normalCount").innerText = normal;
+
+      const max = Math.max(total, 1);
+      document.getElementById("chartCritical").style.height = (critical / max * 120 + 5) + "px";
+      document.getElementById("chartUrgent").style.height = (urgent / max * 120 + 5) + "px";
+      document.getElementById("chartNormal").style.height = (normal / max * 120 + 5) + "px";
+      document.getElementById("chartCriticalVal").innerText = critical;
+      document.getElementById("chartUrgentVal").innerText = urgent;
+      document.getElementById("chartNormalVal").innerText = normal;
+    } catch (err) { console.error(err); }
+  }
+
+  async function loadAlerts() {
+    try {
+      const res = await fetch(`${API_URL}/alerts`);
+      const data = await res.json();
+      const alerts = data.alerts;
+
+      document.getElementById("alertCount").innerText = alerts.length;
+
+      let panel = document.getElementById("alertsPanel");
+      if (alerts.length === 0) {
+        panel.innerHTML = `<p class="no-alerts">No active alerts.</p>`;
+        return;
+      }
+      panel.innerHTML = "";
+      alerts.forEach(a => {
+        panel.innerHTML += `
+          <div class="alert-item">
+            <div class="alert-name">CRITICAL ALERT</div>
+            ${a.message}
+            <div class="alert-time">${a.timestamp || "Just now"}</div>
+          </div>
+        `;
+      });
+    } catch (err) { console.error(err); }
+  }
+
+  async function loadHistory() {
+    try {
+      const res = await fetch(`${API_URL}/queue`);
+      const data = await res.json();
+      const queue = data.queue;
+
+      let tbody = document.getElementById("historyBody");
+      if (queue.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#aaa; padding:2rem;">No patients yet.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = "";
+      queue.forEach((p, i) => {
+        let badgeClass = p.severity === "Critical" ? "badge-critical" : p.severity === "Urgent" ? "badge-urgent" : "badge-normal";
+        tbody.innerHTML += `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${p.name}</td>
+            <td>${p.age}</td>
+            <td><span class="${badgeClass}">${p.severity}</span></td>
+            <td style="color:#2a9d8f;">${p.status || "Waiting"}</td>
+            <td style="color:#aaa; font-size:0.8rem;">${p.timestamp || "-"}</td>
+          </tr>
+        `;
+      });
+    } catch (err) { console.error(err); }
+  }
+
+  setInterval(() => {
+    if (document.getElementById("dashboard").style.display === "block") {
+      loadDashboard();
+    }
+  }, 30000);
+
+  window.onload = function() {
+    document.getElementById("loginPage").style.display = "flex";
+  };
+</script>
+</body>
+</html>

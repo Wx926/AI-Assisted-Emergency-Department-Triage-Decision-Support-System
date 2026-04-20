@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>TriagePulse - AI Emergency Triage</title>
+  <link rel="stylesheet" href="index.css">
+  <style>
+    .live-stats-banner {
+      background: #1a1a1a;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      border-bottom: 2px solid #E63946;
+      margin-top: 100px;
+      flex-wrap: wrap;
+    }
+    .live-stat-item { text-align: center; color: #f5f5f5; }
+    .live-stat-number { font-size: 2rem; font-weight: bold; color: #E63946; }
+    .live-stat-label { font-size: 0.8rem; color: #aaa; text-transform: uppercase; }
+    .live-clock { color: #E63946; font-size: 1rem; font-weight: bold; text-align: center; padding: 0.3rem 0; background: #111; position: fixed; top: 0; width: 100%; z-index: 1001; }
+    .nav { top: 28px !important; }
+    .how-it-works { background: #111; padding: 5rem 0; }
+    .how-it-works .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+    .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 3rem; }
+    .step-card { background: #0a0a0a; border: 1px solid #1a1a1a; padding: 2rem; border-radius: 12px; text-align: center; transition: all 0.3s ease; }
+    .step-card:hover { border-color: #E63946; transform: translateY(-5px); }
+    .step-number { font-size: 3rem; font-weight: bold; color: #E63946; margin-bottom: 1rem; }
+    .step-title { font-size: 1.3rem; color: #f5f5f5; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 2px; }
+    .step-desc { color: #aaa; font-size: 0.9rem; line-height: 1.6; }
+    .why-section { background: #0a0a0a; padding: 5rem 0; }
+    .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-top: 3rem; }
+    .why-card { background: #111; border: 1px solid #1a1a1a; padding: 2rem; border-radius: 12px; transition: all 0.3s ease; }
+    .why-card:hover { border-color: #E63946; transform: translateY(-5px); }
+    .why-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+    .why-title { font-size: 1.2rem; color: #E63946; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px; }
+    .why-desc { color: #aaa; font-size: 0.9rem; line-height: 1.6; }
+    .malaysia-section { background: #1a1a1a; padding: 5rem 0; border-top: 2px solid #E63946; }
+    .malaysia-content { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+    .malaysia-text h2 { color: #f5f5f5; margin-bottom: 1rem; }
+    .malaysia-text p { color: #aaa; line-height: 1.8; margin-bottom: 1rem; }
+    .malaysia-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .malaysia-stat { background: #0a0a0a; padding: 1.5rem; border-radius: 12px; border: 1px solid #333; text-align: center; }
+    .malaysia-stat-number { font-size: 2rem; font-weight: bold; color: #E63946; }
+    .malaysia-stat-label { color: #aaa; font-size: 0.8rem; margin-top: 0.3rem; }
+    .cta-section { background: #E63946; padding: 4rem 0; text-align: center; }
+    .cta-section h2 { color: #fff; margin-bottom: 1rem; }
+    .cta-section p { color: rgba(255,255,255,0.8); margin-bottom: 2rem; }
+    .cta-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-white { background: #fff; color: #E63946; padding: 1rem 2.5rem; text-decoration: none; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.3s ease; border: 2px solid #fff; }
+    .btn-white:hover { background: transparent; color: #fff; }
+    .btn-outline-white { background: transparent; color: #fff; padding: 1rem 2.5rem; text-decoration: none; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.3s ease; border: 2px solid #fff; }
+    .btn-outline-white:hover { background: #fff; color: #E63946; }
+    @media (max-width: 768px) { .malaysia-content { grid-template-columns: 1fr; } .live-stats-banner { gap: 1rem; } }
+  </style>
+</head>
+<body>
+
+<!-- LIVE CLOCK -->
+<div class="live-clock" id="liveClock">Loading...</div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-container">
+    <div class="logo" onclick="window.location='index.html'">TriagePulse</div>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="intake.html" class="nav-link">Intake</a></li>
+      <li><a href="queue.html" class="nav-link">Queue</a></li>
+      <li><a href="admin.html" class="nav-link">Admin</a></li>
+    </ul>
+    <button class="intake-btn" onclick="window.location='intake.html'">Begin Triage</button>
+  </div>
+</div>
+
+<!-- LIVE STATS BANNER -->
+<div class="live-stats-banner">
+  <div class="live-stat-item">
+    <div class="live-stat-number" id="bannerTotal">0</div>
+    <div class="live-stat-label">Total Patients</div>
+  </div>
+  <div class="live-stat-item">
+    <div class="live-stat-number" id="bannerCritical" style="color:#E63946;">0</div>
+    <div class="live-stat-label">Critical</div>
+  </div>
+  <div class="live-stat-item">
+    <div class="live-stat-number" id="bannerUrgent" style="color:#f4a261;">0</div>
+    <div class="live-stat-label">Urgent</div>
+  </div>
+  <div class="live-stat-item">
+    <div class="live-stat-number" id="bannerNormal" style="color:#2a9d8f;">0</div>
+    <div class="live-stat-label">Normal</div>
+  </div>
+  <div class="live-stat-item">
+    <div class="live-stat-number" id="bannerAlerts" style="color:#f4a261;">0</div>
+    <div class="live-stat-label">Active Alerts</div>
+  </div>
+</div>
+
+<!-- HERO -->
+<section id="home" class="main">
+  <div class="main-bg"></div>
+  <div class="container">
+    <div class="main-content">
+      <h1>Smarter Decisions<br><span>Faster Emergency Care</span></h1>
+      <p class="main-subtitle">An AI-assisted triage system that analyzes patient conditions in real-time to prioritize critical cases efficiently. Built for Malaysia's Emergency Departments.</p>
+      <div class="main-buttons">
+        <a href="intake.html" class="btn-primary">Begin Triage</a>
+        <a href="queue.html" class="btn-primary" style="background:transparent; border:2px solid #fff;">View Queue</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-it-works">
+  <div class="container">
+    <div class="section-header">
+      <h2>How It Works</h2>
+      <p style="color:#aaa;">Three simple steps to faster, safer emergency triage</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-number">01</div>
+        <div class="step-title">Nurse Inputs Vitals</div>
+        <div class="step-desc">Triage nurse enters patient vitals — heart rate, oxygen level, blood pressure, and chief complaint at point of arrival.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-number">02</div>
+        <div class="step-title">AI Analyzes & Predicts</div>
+        <div class="step-desc">Our hybrid AI model combines rule-based safety checks with Random Forest machine learning to predict severity and risk score instantly.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-number">03</div>
+        <div class="step-title">Queue Auto-Updates</div>
+        <div class="step-desc">Patients are automatically sorted by severity. Critical patients rise to the top. Doctors and supervisors get real-time visibility.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY TRIAGEPULSE -->
+<section class="why-section">
+  <div class="container">
+    <div class="section-header">
+      <h2>Why TriagePulse</h2>
+      <p style="color:#aaa;">Built to solve real emergency department challenges</p>
+    </div>
+    <div class="why-grid">
+      <div class="why-card">
+        <div class="why-icon">⚡</div>
+        <div class="why-title">Faster Triage</div>
+        <div class="why-desc">AI-assisted prioritization reduces time to identify critical patients. No more manual sorting under workload pressure.</div>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">🧠</div>
+        <div class="why-title">AI-Powered</div>
+        <div class="why-desc">Hybrid model combining clinical safety rules with Random Forest ML. Explainable results nurses and doctors can trust.</div>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">📊</div>
+        <div class="why-title">Real-Time Queue</div>
+        <div class="why-desc">Live dashboard shows ED congestion, active alerts, and patient priority at a glance. Auto-refreshes every 30 seconds.</div>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">🛡️</div>
+        <div class="why-title">Decision Support Only</div>
+        <div class="why-desc">AI recommends — clinicians decide. Final triage authority always remains with the trained medical professional.</div>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">🔴</div>
+        <div class="why-title">Critical Alerts</div>
+        <div class="why-desc">Automatic alerts fire when a patient is classified as Critical. Supervisors are notified instantly for immediate action.</div>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">📋</div>
+        <div class="why-title">Full Audit Trail</div>
+        <div class="why-desc">Every triage decision is logged with timestamp and reason. Full patient history available to admin dashboard.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MALAYSIA CONTEXT -->
+<section class="malaysia-section">
+  <div class="container">
+    <div class="malaysia-content">
+      <div class="malaysia-text">
+        <h2>Built for Malaysia's EDs</h2>
+        <p>Malaysia is experiencing rapid growth in its ageing population, placing increasing pressure on Emergency Departments nationwide. MOH operational documents identify prolonged bed waiting time as a key contributor to ED overcrowding.</p>
+        <p>Manual triage depends heavily on clinical judgment, which can vary under workload pressure. TriagePulse helps nurses triage consistently and rapidly — even during peak hours.</p>
+        <p style="color:#E63946; font-weight:bold;">AI does not replace the clinician. It makes the clinician faster and more consistent.</p>
+      </div>
+      <div class="malaysia-stats">
+        <div class="malaysia-stat">
+          <div class="malaysia-stat-number">15%</div>
+          <div class="malaysia-stat-label">Malaysia population aged 60+ by 2030</div>
+        </div>
+        <div class="malaysia-stat">
+          <div class="malaysia-stat-number">↑ED</div>
+          <div class="malaysia-stat-label">Rising ED visits due to ageing population</div>
+        </div>
+        <div class="malaysia-stat">
+          <div class="malaysia-stat-number">95%</div>
+          <div class="malaysia-stat-label">AI accuracy on critical patient detection</div>
+        </div>
+        <div class="malaysia-stat">
+          <div class="malaysia-stat-number">3s</div>
+          <div class="malaysia-stat-label">Average AI triage prediction time</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2>Ready to Start Triaging?</h2>
+    <p>Begin entering patients or check the current ED queue status.</p>
+    <div class="cta-buttons">
+      <a href="intake.html" class="btn-white">Begin Triage</a>
+      <a href="queue.html" class="btn-outline-white">View Queue</a>
+      <a href="admin.html" class="btn-outline-white">Admin Login</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-content">
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="intake.html">Intake</a>
+      <a href="queue.html">Queue</a>
+      <a href="admin.html">Admin</a>
+    </div>
+    <div class="footer-copyright">© 2026 TriagePulse. All rights reserved. | For clinical staff use only.</div>
+  </div>
+</footer>
+
+<script>
+  const API_URL = "https://triagepulse-backend-472704188167.asia-southeast1.run.app";
+
+  function updateClock() {
+    const now = new Date();
+    document.getElementById("liveClock").innerText =
+      "ED System Time: " + now.toLocaleString("en-MY", {
+        weekday: "long", year: "numeric", month: "long",
+        day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit"
+      });
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  async function loadBannerStats() {
+    try {
+      const res = await fetch(`${API_URL}/queue`);
+      const data = await res.json();
+      const queue = data.queue;
+      document.getElementById("bannerTotal").innerText = queue.length;
+      document.getElementById("bannerCritical").innerText = queue.filter(p => p.severity === "Critical").length;
+      document.getElementById("bannerUrgent").innerText = queue.filter(p => p.severity === "Urgent").length;
+      document.getElementById("bannerNormal").innerText = queue.filter(p => p.severity === "Normal").length;
+      const res2 = await fetch(`${API_URL}/alerts`);
+      const data2 = await res2.json();
+      document.getElementById("bannerAlerts").innerText = data2.alerts.length;
+    } catch (err) { console.error(err); }
+  }
+
+  setInterval(loadBannerStats, 30000);
+  window.onload = loadBannerStats;
+</script>
+</body>
+</html>
