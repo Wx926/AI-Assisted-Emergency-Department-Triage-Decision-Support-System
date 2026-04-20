@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "tria
 from model_logic import predict_triage
 
 # Configure Gemini
-genai.configure(api_key="AIzaSyDsOTukFwcxiWtG2_LP96Er1n_vsSE2FUA")
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY", ""))
 gemini_model = genai.GenerativeModel("gemini-2.0-flash")
 
 router = APIRouter()
