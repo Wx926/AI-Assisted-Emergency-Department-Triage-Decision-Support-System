@@ -11,9 +11,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "tria
 
 from model_logic import predict_triage
 
-# Configure Gemini
-genai.configure(api_key=os.environ.get("GEMINI_API_KEY", ""))
-gemini_model = genai.GenerativeModel("gemini-2.0-flash")
+# Gemini configured per request
+
 
 router = APIRouter()
 
@@ -30,29 +29,48 @@ class PatientInput(BaseModel):
 def generate_gemini_summary(name, age, heart_rate, oxygen_level, blood_pressure, symptom, severity, risk_score, reason):
     """Use Gemini to generate a clinical summary for the doctor."""
     try:
+        api_key = os.environ.get("GEMINI_API_KEY", "")
+        if not api_key:
+            return generate_fallback_summary(severity, risk_score, reason, symptom)
+        
+        genai.configure(api_key=api_key)
+        gemini_model = genai.GenerativeModel("gemini-2.0-flash-lite")
         prompt = f"""
         You are a clinical decision support assistant in an Emergency Department.
         A patient has just been triaged. Write a concise 2-sentence clinical summary for the attending doctor.
 
         Patient Details:
-        - Name: {name}
-        - Age: {age}
-        - Heart Rate: {heart_rate} bpm
-        - Oxygen Level (SpO2): {oxygen_level}%
+        - Name: {name}, Age: {age}
+        - Heart Rate: {heart_rate} bpm, SpO2: {oxygen_level}%
         - Blood Pressure: {blood_pressure}
         - Chief Complaint: {symptom}
 
         AI Triage Result:
-        - Severity: {severity}
-        - Risk Score: {risk_score}%
-        - Reason: {reason}
+        - Severity: {severity}, Risk Score: {risk_score}%, Reason: {reason}
 
         Write a professional 2-sentence clinical summary. Be concise and factual.
         """
         response = gemini_model.generate_content(prompt)
         return response.text.strip()
     except Exception as e:
+        if "429" in str(e) or "quota" in str(e).lower():
+            return generate_fallback_summary(severity, risk_score, reason, symptom)
         return f"Clinical summary unavailable: {str(e)}"
+
+
+def generate_fallback_summary(severity, risk_score, reason, symptom):
+    """Rule-based fallback when Gemini quota is exceeded."""
+    urgency = {
+        "Critical": "requires immediate physician assessment",
+        "Urgent":   "should be seen promptly by the attending physician",
+        "Normal":   "can be managed in standard triage order"
+    }.get(severity, "requires evaluation")
+    
+    return (
+        f"Patient presents with {symptom} and has been triaged as {severity} "
+        f"with a risk score of {risk_score}%. "
+        f"AI assessment indicates {reason.lower()} — patient {urgency}."
+    )
 
 
 @router.post("/patients")
